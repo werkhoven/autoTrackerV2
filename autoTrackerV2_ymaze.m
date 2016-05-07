@@ -19,16 +19,17 @@ kernelWeight=0.34;                          % Scalar weighting of kernel when ap
 
 %% Save labels and create placeholder files for data
 
-t = datestr(clock,'mm-dd-yyyy_HH-MM-SS');
-labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
+t = datestr(clock,'mm-dd-yyyy_');
 labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment'});
+strain=labels{1,1}{:};
+treatment=labels{1,3}{:};
+labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
 writetable(labels, labelID);
 
 % Create placeholder files
-
- cenID = [handles.fpath '\' t '_Centroid.dat'];            % File ID for centroid data
- oriID = [handles.fpath '\' t '_Orientation.dat'];         % File ID for orientation angle
- turnID = [handles.fpath '\' t '_RightTurns.dat'];         % File ID for turn data
+cenID = [handles.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
+oriID = [handles.fpath '\' t strain '_' treatment '_Orientation.dat'];         % File ID for orientation angle
+turnID = [handles.fpath '\' t strain '_' treatment '_RightTurns.dat'];         % File ID for turn data
  
 dlmwrite(cenID, []);                          % create placeholder ASCII file
 dlmwrite(oriID, []);                          % create placeholder ASCII file
@@ -94,27 +95,30 @@ end
     
 set(handles.edit8,'String',num2str(round(1/toc)));
 end
-
+% Reset the accept threshold button
+set(handles.togglebutton10,'value',0);
 
 %% Automatically average out flies from reference image
 
-refImage=imagedata(:,:,1);                                     % Assign reference image
-lastCentroid=centers;                 % Create placeholder for most recent non-NaN centroids
+refImage=imagedata(:,:,1);                              % Assign reference image
+lastCentroid=centers;                                   % Create placeholder for most recent non-NaN centroids
 referenceCentroids=zeros(size(ROI_coords,1),2,10);      % Create placeholder for cen. coords when references are taken
 propFields={'Centroid';'Orientation';'Area'};           % Define fields for regionprops
 nRefs=zeros(size(ROI_coords,1),1);                      % Reference number placeholder
 numbers=1:size(ROI_coords,1);                           % Numbers to display while tracking
 centStamp=zeros(size(ROI_coords,1),1);
-imshow(refImage);
+vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
 
 %title('Reference Acquisition In Progress - Press any key to continue')
 shg
 
+% Time stamp placeholders
 tElapsed=0;
 tic
 previous_tStamp=toc;
 current_tStamp=0;
 
+% Collect reference until timeout OR "accept reference" GUI press
 while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
     
     % Update image threshold value from GUI
@@ -126,6 +130,7 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
     tElapsed=tElapsed+current_tStamp-previous_tStamp;
     previous_tStamp=current_tStamp;
     
+        % Report time remaining to reference timeout to GUI
         timeRemaining = round(referenceTime - toc);
         if timeRemaining < 60; 
             set(handles.edit6, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
@@ -146,7 +151,7 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
         % Take difference image
         imagedata=peekdata(vid,1);
         imagedata=imagedata(:,:,1);
-        subtractedData=refImage-imagedata;
+        subtractedData=(refImage-vignetteMat)-(imagedata-vignetteMat);
 
         % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
         props=regionprops((subtractedData>imageThresh),propFields);
@@ -177,7 +182,7 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
             end
         end
         
-        
+       % Check "Display ON" toggle button from GUI 
        if get(handles.togglebutton7,'value')==1
            % Update the plot with new reference
            imshow(subtractedData>imageThresh);
@@ -202,11 +207,16 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
 
 end
 
+% Update vignette offset matrix with better reference
+vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
+
+% Reset accept reference button
+set(handles.togglebutton11,'value',0);
+
 %% Display tracking to screen for tracking errors
 
 
-ct=1;    
-imshow(imagedata);
+ct=1;                               % Frame counter
 pixDistSize=100;                    % Num values to record in p
 pixelDist=NaN(pixDistSize,1);       % Distribution of total number of pixels above image threshold
 tElapsed=0;
@@ -214,9 +224,10 @@ shg
 %title('Displaying Tracking for 120s - Please check tracking and ROIs')
 tic   
 
-while  toc<referenceTime && get(handles.togglebutton12,'value')~=1 || ct<pixDistSize;
-            
-imageThresh=get(handles.slider2,'value');
+while ct<pixDistSize;
+        
+        % Grab image thresh from GUI slider
+        imageThresh=get(handles.slider2,'value');
 
         % Update time stamps
         current_tStamp=toc;
@@ -225,25 +236,13 @@ imageThresh=get(handles.slider2,'value');
         previous_tStamp=current_tStamp;
 
             timeRemaining = round(referenceTime - toc);
-                if timeRemaining < 60; 
-                    set(handles.edit6, 'String', ['00:00:' sprintf('%0.2d',timeRemaining)]);
-                    set(handles.edit6, 'BackgroundColor', [1 0.4 0.4]);
-                elseif (3600 > timeRemaining) && (timeRemaining > 60);
-                    min = floor(timeRemaining/60);
-                    sec = rem(timeRemaining, 60);
-                    set(handles.edit6, 'String', ['00:' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
-                    set(handles.edit6, 'BackgroundColor', [1 1 1]);
-                elseif timeRemaining > 3600;
-                    hr = floor(timeRemaining/3600);
-                    min = floor(rem(timeRemaining, 3600)/60);
-                    sec = timeRemaining - hr*3600 - min*60;
-                    set(handles.edit6, 'String', [sprintf('%0.2d', hr) ':' sprintf('%0.2d',min) ':' sprintf('%0.2d',sec)]);
-                    set(handles.edit6, 'BackgroundColor', [1 1 1]);
-                end
+                
+                set(handles.edit10, 'String', num2str(pixDistSize-ct));
 
                % Get centroids and sort to ROIs
                imagedata=peekdata(vid,1);
-               imagedata=refImage-imagedata(:,:,1);
+               imagedata=imagedata(:,:,1);
+               imagedata=(refImage-vignetteMat)-(imagedata-vignetteMat);
                props=regionprops((imagedata>imageThresh),propFields);
 
                % Match centroids to ROIs by finding nearest ROI center
@@ -268,9 +267,10 @@ imageThresh=get(handles.slider2,'value');
                drawnow
                end
                
-               pixelDist(mod(ct,pixDistSize)+1)=sum(sum(imagedata>imageThresh));
-               mod(ct,pixDistSize)+1
-               ct=ct+1;
+           % Create distribution for num pixels above imageThresh
+           % Image statistics used later during acquisition to detect noise
+           pixelDist(mod(ct,pixDistSize)+1)=nansum(nansum(imagedata>imageThresh));
+           ct=ct+1;
    
    % Pause the script if the pause button is hit
    if get(handles.togglebutton9, 'Value') == 1;
@@ -278,17 +278,18 @@ imageThresh=get(handles.slider2,'value');
    end
 
 end
-   
-pixStd=std(pixelDist);      % Std deviation of pixels above threshold when the reference is good
-pixMean=nanmean(pixelDist);
+
+% Record stdDev and mean without noise
+pixStd=nanstd(pixelDist);
+pixMean=nanmean(pixelDist);    
 
 %% Calculate coordinates of end of each maze arm
 
 arm_coords=zeros(size(ROI_coords,1),2,6);
 w=ROI_bounds(:,3);
 h=ROI_bounds(:,4);
-xShift=w.*0.15;
-yShift=w.*0.15;
+xShift=w.*0.2;
+yShift=w.*0.2;
 
 % Coords 1-3 are for right-side down mazes
 arm_coords(:,:,1)=[ROI_coords(:,1)+xShift ROI_coords(:,4)-yShift];
@@ -362,7 +363,8 @@ while toc < exp_duration
         
         % Capture frame and extract centroid
         imagedata=peekdata(vid,1);
-        diffImage=refImage-imagedata(:,:,1);
+        imagedata=imagedata(:,:,1);
+        diffImage=(refImage-vignetteMat)-(imagedata-vignetteMat);
         props=regionprops((diffImage>imageThresh),propFields);
         
         % update reference image and ROI_positions at the reference frequency and print time remaining 
@@ -404,7 +406,7 @@ while toc < exp_duration
         % Update the display every 30 frames
         if mod(ct,30)==0 && get(handles.togglebutton7,'value')==1
            %imagedata(:,:,1)=uint8((diffImage>imageThresh).*255);
-           imshow(imagedata(:,:,1))
+           imshow((imagedata-vignetteMat))
            hold on
            plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r')
            hold off
@@ -435,22 +437,9 @@ while toc < exp_duration
                refCount=refCount+1;
                refStack(:,:,mod(size(refStack,3),refCount)+1)=imagedata(:,:,1);
                refImage=uint8(mean(refStack,3));
+               % Update vignette offset matrix with better reference
+               vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
             end
-           
-           % Update ROI threshold value
-            ROI_thresh=get(handles.slider1,'value');
-            ROI_image=(uint8(double(imagedata(:,:,1)).*gaussianKernel));
-            % Extract ROIs from thresholded image
-            [ROI_bounds,ROI_coords,ROI_widths,ROI_heights,binaryimage] = detect_ROIs(ROI_image,ROI_thresh);
-            % Create orientation vector for mazes (upside down Y = 0, right-side up = 1)
-            mazeOri=optoDetermineMazeOrientation(binaryimage,ROI_coords);
-            mazeOri=boolean(mazeOri);
-            % Define a permutation vector to sort ROIs from top-right to bottom left
-            [ROI_coords,mazeOri]=optoSortROIs(binaryimage,ROI_coords,mazeOri);
-            % Calculate coords of ROI centers
-            [xCenters,yCenters]=optoROIcenters(binaryimage,ROI_coords);
-            centers=[xCenters,yCenters];
-           
         end 
         previous_refUpdater=current_refUpdater;
    

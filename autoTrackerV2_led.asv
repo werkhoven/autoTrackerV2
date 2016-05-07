@@ -19,18 +19,18 @@ kernelWeight=0.34;                          % Scalar weighting of kernel when ap
 
 %% Save labels and create placeholder files for data
 
-t = datestr(clock,'mm-dd-yyyy_');
-labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment'});
-strain=labels{1,1}{:};
-treatment=labels{1,3}{:};
+t = datestr(clock,'mm-dd-yyyy_HH-MM-SS');
 labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
+labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment'});
 writetable(labels, labelID);
+strain=flyTracks.labels{1,1}{:};
+treatment=flyTracks.labels{1,3}{:};
 
 % Create placeholder files
 cenID = [handles.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
 oriID = [handles.fpath '\' t strain '_' treatment '_Orientation.dat'];         % File ID for orientation angle
 turnID = [handles.fpath '\' t strain '_' treatment '_RightTurns.dat'];         % File ID for turn data
-liteID = [handles.fpath '\' t strain '_' treatment '_lightSequence.dat'];      % File ID for light choice sequence data
+liteID = [handles.fpath '\' t '_lightSequence.dat'];      % File ID for light choice sequence data
  
 dlmwrite(cenID, []);                          % create placeholder ASCII file
 dlmwrite(oriID, []);                          % create placeholder ASCII file
@@ -178,7 +178,7 @@ vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
 %title('Reference Acquisition In Progress - Press any key to continue')
 shg
 
-% Time stamp placeholders
+% Time stampe placeholders
 tElapsed=0;
 tic
 previous_tStamp=toc;
