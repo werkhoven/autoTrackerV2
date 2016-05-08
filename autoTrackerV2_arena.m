@@ -94,6 +94,8 @@ end
 set(handles.edit8,'String',num2str(round(1/toc)));
 end
 
+% Reset the accept threshold button
+set(handles.togglebutton10,'value',0);
 
 %% Automatically average out flies from reference image
 
