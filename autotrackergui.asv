@@ -61,7 +61,6 @@ set(handles.togglebutton9,'value',0);
 set(handles.slider2,'value',15);
 set(handles.slider1,'value',0.15);
 set(handles.togglebutton7,'value',1);
-handles.experiment=1;
 
 % Close and delete any open serial objects
 if ~isempty(instrfindall)
@@ -254,15 +253,15 @@ function pushbutton2_Callback(hObject, ~, handles)
 
 if isfield(handles, 'fpath') == 0 
     errordlg('Please specify Save Location')
-elseif handles.experiment == 1 
+elseif isfield(handles, 'experiment') == 0 
     errordlg('Please select an experiment type on the menu bar')
 else
     switch handles.experiment
-    	case 2
+    	case 1
             autoTrackerV2_ymaze;
-        case 3
+        case 2
             autoTrackerV2_arena;
-        case 4
+        case 3
             autoTrackerV2_led;
     end
 end
@@ -554,6 +553,33 @@ function experiment_select_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+
+% --------------------------------------------------------------------
+function ymaze_Callback(hObject, eventdata, handles)
+% hObject    handle to ymaze (see GCBO)
+handles.experiment=1;
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function arenaCircling_Callback(hObject, eventdata, handles)
+% hObject    handle to arenaCircling (see GCBO)
+handles.experiment=2;
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function ledYmaze_Callback(hObject, eventdata, handles)
+% hObject    handle to ledYmaze (see GCBO)
+handles.experiment=3;
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+guidata(hObject, handles);
+
 function popupmenu1_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to popupmenu2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -624,10 +650,9 @@ function popupmenu3_Callback(hObject, eventdata, handles)
 % hObject    handle to popupmenu3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-get(handles.popupmenu3,'Value')
-handles.experiment=get(handles.popupmenu3,'Value');
-guidata(hObject, handles);
 
+strCell=get(handles.popupmenu2,'string');
+handles.experiment=strCell(get(handles.popupmenu2,'Value'));
 
 
 % --- Executes during object creation, after setting all properties.
