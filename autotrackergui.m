@@ -58,8 +58,8 @@ handles.refTime = 22;
 
 axes(handles.axes2)
 set(handles.togglebutton9,'value',0);
-set(handles.slider2,'value',15);
-set(handles.slider1,'value',0.15);
+set(handles.slider2,'value',12);
+set(handles.slider1,'value',0.19);
 set(handles.togglebutton7,'value',1);
 handles.experiment=1;
 
