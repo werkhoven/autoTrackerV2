@@ -10,7 +10,7 @@ referenceTime = 600;                        % Seconds over which intial referenc
 % Tracking parameters
 imageThresh=get(handles.slider2,'value');                             % Difference image threshold for detecting centroids
 distanceThresh=20;                          % Maximum allowed pixel distance matching centroids to ROIs
-speedThresh=25;                              % Maximum allow pixel speed (px/s);
+speedThresh=35;                              % Maximum allow pixel speed (px/s);
 
 % ROI detection parameters
 ROI_thresh=get(handles.slider1,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
@@ -175,8 +175,11 @@ numbers=1:size(ROI_coords,1);                           % Numbers to display whi
 centStamp=zeros(size(ROI_coords,1),1);
 vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
 
-%title('Reference Acquisition In Progress - Press any key to continue')
-shg
+% Set maximum allowable distance to center of ROI as the long axis of the
+% ROI + some error
+w=median(ROI_bounds(3,:));
+h=median(ROI_bounds(4,:));
+distanceThresh=sqrt(w^2+h^2)/2*1.15;  
 
 % Time stamp placeholders
 tElapsed=0;

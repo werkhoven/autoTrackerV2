@@ -9,7 +9,7 @@ armThresh=7;                                % Minimum pixel distance to end of m
 referenceTime = 600;                        % Seconds over which intial reference images are taken
 % Tracking parameters
 imageThresh=get(handles.slider2,'value');                             % Difference image threshold for detecting centroids
-speedThresh=24;                              % Maximum allow pixel speed (px/s);
+speedThresh=35;                              % Maximum allow pixel speed (px/s);
 
 % ROI detection parameters
 ROI_thresh=get(handles.slider1,'value');    % Binary image threshold from zero (black) to one (white) for segmentation  
@@ -105,6 +105,12 @@ nRefs=zeros(size(ROI_coords,1),1);                      % Reference number place
 numbers=1:size(ROI_coords,1);                           % Numbers to display while tracking
 centStamp=zeros(size(ROI_coords,1),1);
 vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
+
+% Set maximum allowable distance to center of ROI as the long axis of the
+% ROI + some error
+w=median(ROI_bounds(3,:));
+h=median(ROI_bounds(4,:));
+distanceThresh=sqrt(w^2+h^2)/2*1.15;  
 
 %title('Reference Acquisition In Progress - Press any key to continue')
 shg
