@@ -75,6 +75,8 @@ set(handles.popupmenu2,'string',ports);
 if ~isempty(ports)
 strCell=get(handles.popupmenu2,'string');
 handles.port=strCell(1);
+else
+handles.port='No COM detected';
 end
 
 % Choose default command line output for autotrackergui
