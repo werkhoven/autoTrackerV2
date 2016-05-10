@@ -485,19 +485,6 @@ while toc < exp_duration
            imshow((imagedata-vignetteMat))
            hold on
            plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r')
-                 for i=50:59
-                    if ~mazeOri(i)
-                        text(centers(i,1)-5,centers(i,2),int2str(current_arm(i)),'Color','m')
-                        viscircles([arm_coords(i,1,1) arm_coords(i,2,1)],armThresh,'Linewidth',0.5,'LineStyle','--');
-                        viscircles([arm_coords(i,1,2) arm_coords(i,2,2)],armThresh,'Linewidth',0.5,'LineStyle','--');
-                        viscircles([arm_coords(i,1,3) arm_coords(i,2,3)],armThresh,'Linewidth',0.5,'LineStyle','--');
-                    else
-                        text(centers(i,1)-5,centers(i,2),int2str(current_arm(i)),'Color','b')
-                        viscircles([arm_coords(i,1,4) arm_coords(i,2,4)],armThresh,'Linewidth',0.5,'LineStyle','--');
-                        viscircles([arm_coords(i,1,5) arm_coords(i,2,5)],armThresh,'Linewidth',0.5,'LineStyle','--');
-                        viscircles([arm_coords(i,1,6) arm_coords(i,2,6)],armThresh,'Linewidth',0.5,'LineStyle','--');
-                    end
-                 end
            hold off
            drawnow
         end
