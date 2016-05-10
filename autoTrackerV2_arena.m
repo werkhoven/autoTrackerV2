@@ -5,7 +5,6 @@
 exp_duration=handles.expDuration*60;           % Duration of the experiment in minutes
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
 referenceFreq=handles.refTime;              % Seconds between reference images
-armThresh=7;                                % Minimum pixel distance to end of maze arm for turn scoring
 referenceTime = 600;                        % Seconds over which intial reference images are taken
 % Tracking parameters
 imageThresh=get(handles.slider2,'value');                             % Difference image threshold for detecting centroids
@@ -66,12 +65,12 @@ ROI_image=(uint8(double(ROI_image).*gaussianKernel));
 % Create orientation vector for mazes (upside down Y = 0, right-side up = 1)
 mazeOri=boolean(zeros(size(ROI_coords,1),1));
 
-% Define a permutation vector to sort ROIs from top-right to bottom left
-[ROI_coords,mazeOri,ROI_bounds]=optoSortROIs(binaryimage,ROI_coords,mazeOri,ROI_bounds);
-
 % Calculate coords of ROI centers
 [xCenters,yCenters]=optoROIcenters(binaryimage,ROI_coords);
 centers=[xCenters,yCenters];
+
+% Define a permutation vector to sort ROIs from top-right to bottom left
+[ROI_coords,mazeOri,ROI_bounds,centers]=optoSortROIs(ROI_coords,mazeOri,centers,ROI_bounds);
 
 set(handles.edit7,'String',num2str(size(ROI_bounds,1)));
 
@@ -110,9 +109,9 @@ vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
 
 % Set maximum allowable distance to center of ROI as the long axis of the
 % ROI + some error
-w=median(ROI_bounds(3,:));
-h=median(ROI_bounds(4,:));
-distanceThresh=sqrt(w^2+h^2)/2*1.15;  
+w=median(ROI_bounds(:,3));
+h=median(ROI_bounds(:,4));
+distanceThresh=sqrt(w^2+h^2)/2;  
 
 %title('Reference Acquisition In Progress - Press any key to continue')
 shg

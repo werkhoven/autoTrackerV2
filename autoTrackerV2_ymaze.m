@@ -67,12 +67,12 @@ ROI_image=(uint8(double(ROI_image).*gaussianKernel));
 mazeOri=optoDetermineMazeOrientation(binaryimage,ROI_coords);
 mazeOri=boolean(mazeOri);
 
-% Define a permutation vector to sort ROIs from top-right to bottom left
-[ROI_coords,mazeOri,ROI_bounds]=optoSortROIs(binaryimage,ROI_coords,mazeOri,ROI_bounds);
-
 % Calculate coords of ROI centers
 [xCenters,yCenters]=optoROIcenters(binaryimage,ROI_coords);
 centers=[xCenters,yCenters];
+
+% Define a permutation vector to sort ROIs from top-right to bottom left
+[ROI_coords,mazeOri,ROI_bounds,centers]=optoSortROIs(ROI_coords,mazeOri,centers,ROI_bounds);
 
 set(handles.edit7,'String',num2str(size(ROI_bounds,1)));
 
@@ -110,9 +110,15 @@ vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
 
 % Set maximum allowable distance to center of ROI as the long axis of the
 % ROI + some error
-w=median(ROI_bounds(3,:));
-h=median(ROI_bounds(4,:));
-distanceThresh=sqrt(w^2+h^2)/2*1.15;  
+widths=(ROI_bounds(:,3));
+heights=(ROI_bounds(:,4));
+w=median(widths);
+h=median(heights);
+distanceThresh=sqrt(w^2+h^2)/2*0.95;
+
+% Calculate threshold for distance to end of maze arms for turn scoring
+mazeLengths=mean([widths heights],2);
+armThresh=mazeLengths.*0.2;
 
 % Time stamp placeholders
 tElapsed=0;
@@ -290,17 +296,17 @@ pixMean=nanmean(pixelDist);
 arm_coords=zeros(size(ROI_coords,1),2,6);
 w=ROI_bounds(:,3);
 h=ROI_bounds(:,4);
-xShift=w.*0.2;
-yShift=w.*0.2;
+xShift=w.*0.15;
+yShift=h.*0.15;
 
 % Coords 1-3 are for right-side down mazes
 arm_coords(:,:,1)=[ROI_coords(:,1)+xShift ROI_coords(:,4)-yShift];
-arm_coords(:,:,2)=[xCenters ROI_coords(:,2)+yShift];
+arm_coords(:,:,2)=[centers(:,1) ROI_coords(:,2)+yShift];
 arm_coords(:,:,3)=[ROI_coords(:,3)-xShift ROI_coords(:,4)-yShift];
 
 % Coords 4-6 are for right-side up mazes
 arm_coords(:,:,4)=[ROI_coords(:,1)+xShift ROI_coords(:,2)+yShift];
-arm_coords(:,:,5)=[xCenters ROI_coords(:,4)-yShift];
+arm_coords(:,:,5)=[centers(:,1) ROI_coords(:,4)-yShift];
 arm_coords(:,:,6)=[ROI_coords(:,3)-xShift ROI_coords(:,2)+yShift];
 
 %% Set experiment parameters

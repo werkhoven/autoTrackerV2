@@ -8,6 +8,8 @@ warning('off');
         
         
         improps = regionprops(binaryimage,'Area','BoundingBox'); % Extract the Area and Bounding Box for binary image
+        improps=improps([improps.Area]>100);                     % Establish lower bound on the area of blobs
+
         blob_count = length(improps);                            % Count blobs in image
         BoundingBoxes = [improps.BoundingBox];
         BoundingBoxes = reshape(BoundingBoxes,[4 blob_count])';   % Reshape bounding boxes to 4 x blob_count array
@@ -18,8 +20,8 @@ warning('off');
        ROI_heights = ROI_bounds(:,4);
        median_W=median(ROI_widths);
        median_H=median(ROI_heights);
-       exclude_W=abs(ROI_widths-median_W)>0.25*median_W;
-       exclude_H=abs(ROI_heights-median_H)>0.25*median_H;
+       exclude_W=abs(ROI_widths-median_W)>0.3*median_W;
+       exclude_H=abs(ROI_heights-median_H)>0.3*median_H;
        excludedROIs=exclude_W|exclude_H;
        
        % Remove ROIs above or below size threshold;
@@ -38,5 +40,13 @@ warning('off');
        ROI_coords(ROI_coords<0)=0.5;
        ROI_coords(ROI_coords(:,4)>size(binaryimage,1),4)=size(binaryimage,1);
        ROI_coords(ROI_coords(:,3)>size(binaryimage,2),3)=size(binaryimage,2);
+
+        %% Exclude ROIs that are too far to the left or right edge of the image
+        width=size(binaryimage,2);
+        minEdge=ROI_coords(:,1)<0.1*width;
+        maxEdge=ROI_coords(:,3)>0.93*width;
+        exclude=minEdge|maxEdge;
+        ROI_coords(exclude,:)=[];
+        ROI_bounds(exclude,:)=[];
        
 end

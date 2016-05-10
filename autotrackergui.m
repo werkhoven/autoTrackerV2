@@ -72,8 +72,7 @@ end
 serialInfo = instrhwinfo('serial');
 ports=serialInfo.AvailableSerialPorts;
 if ~isempty(ports)
-strCell=get(handles.popupmenu2,'string');
-handles.port=strCell(1);
+handles.port=ports(1);
 else
 ports='COM not detected';
 end

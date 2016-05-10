@@ -51,15 +51,14 @@ end
 permutation_1=reshape(xSorted',numel(xSorted),1);
 permutation_1=permutation_1+size(permutation_0,1);
 
-% Sort coordinates into mazeOri=0 and mazeOri=1 categories for
-% to align with permutation vectors
+% Sort coordinates into 
 centers=[tmpCoords_0;tmpCoords_1];
-tmpROI_0=ROI_coords(~mazeOri,:);
-tmpROI_1=ROI_coords(mazeOri,:);
+tmpROI_0=ROI_Coords(~mazeOri,:);
+tmpROI_1=ROI_Coords(mazeOri,:);
 ROI_coords=[tmpROI_0;tmpROI_1];
-tmpBounds_0=ROI_bounds(~mazeOri,:);
-tmpBounds_1=ROI_bounds(mazeOri,:);
-ROI_bounds=[tmpBounds_0;tmpBounds_1];
+tmpROI_0=ROI_Coords(~mazeOri,:);
+tmpROI_1=ROI_Coords(mazeOri,:);
+ROI_coords=[tmpROI_0;tmpROI_1];
 end
 
 % Define master permutation vector and sort ROI_coords

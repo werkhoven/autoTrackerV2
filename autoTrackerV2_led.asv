@@ -185,7 +185,7 @@ distanceThresh=sqrt(w^2+h^2)/2*0.95;
 
 % Calculate threshold for distance to end of maze arms for turn scoring
 mazeLengths=mean([widths heights],2);
-armThresh=mazeLengths*0.15;
+armThresh=mazeLengths*0.;
 
 % Time stamp placeholders
 tElapsed=0;

@@ -16,7 +16,6 @@ triggerconfig(vid,'manual');
 
 vidRes = vid.VideoResolution;
 nBands = vid.NumberOfBands;
-hImage = image( zeros(vidRes(2), vidRes(1), nBands) );
 
 start(vid)
 VidStatus = 1;

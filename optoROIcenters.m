@@ -1,5 +1,7 @@
 function [xCenters,yCenters]=optoROIcenters(binaryimage,ROI_coords)
 
+%% Calculate ROI center coordinates
+
 xCenters=zeros(size(ROI_coords,1),1);
 yCenters=zeros(size(ROI_coords,1),1);
 
