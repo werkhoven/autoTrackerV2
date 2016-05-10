@@ -509,6 +509,6 @@ clearvars -except tmpCen flyTracks t cenID flyCircles
 decPlotArenaTracesv2(flyCircles,tmpCen,flyTracks.ROI_coords)
 
 % Clean up the workspace
-save(strcat('flyTracks',t,'.mat'),'flyTracks');
+save(strcat(handles.fpath,'\',t,'Circling','.mat'),'flyTracks');
 
 

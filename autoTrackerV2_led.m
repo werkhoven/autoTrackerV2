@@ -612,6 +612,6 @@ axis([0 length(bins) 0 max(c)+0.05]);
 shg
 
 % Clean up the workspace
-save(strcat(handles.fpath,'\',t,'flyTracks','.mat'),'flyTracks');
+save(strcat(handles.fpath,'\',t,'LEDymaze','.mat'),'flyTracks');
 
 
