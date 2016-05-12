@@ -2,11 +2,11 @@ function out = labelMaker(labels, varargin)
 
 %Turns labels cell array with sex, strain, treatment, maze start/end
 %columns into 120x3 label cell array for Y-maze
-
+labels
 r = sum(~cellfun('isempty',labels(:,4)));
 newLabel = cell(120,3);
-mazeStarts=str2double(labels(:,4));
-mazeEnds=str2double(labels(:,5));
+mazeStarts=labels{:,4};
+mazeEnds=labels{:,5};
 
 for i = 1:r;
     d = mazeEnds(i) - mazeStarts(i);
