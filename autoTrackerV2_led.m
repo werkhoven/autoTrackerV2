@@ -4,8 +4,7 @@
 % Experimental parameters
 exp_duration=handles.expDuration*60;           % Duration of the experiment in minutes
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
-referenceFreq=handles.refTime;              % Seconds between reference images
-armThresh=6;                                % Minimum pixel distance to end of maze arm for turn scoring
+referenceFreq=handles.refTime;              % Seconds between reference images                           % Minimum pixel distance to end of maze arm for turn scoring
 referenceTime = 600;                        % Seconds over which intial reference images are taken
 % Tracking parameters
 imageThresh=get(handles.slider2,'value');                             % Difference image threshold for detecting centroids
@@ -596,22 +595,46 @@ end
 flyTracks.rBias=nansum(flyTracks.tSeq)./nansum(~isnan(flyTracks.tSeq));
 flyTracks.pBias=nansum(flyTracks.lSeq)./nansum(~isnan(flyTracks.lSeq));
 
-%% Create histogram plots of turn bias and light choice probability
-bins=0:0.05:1;
-c=histc(flyTracks.rBias(flyTracks.numTurns>50),bins);
-c=c./(sum(c));
-plot(c,'r');
-set(gca,'Xtick',(1:2:21),'XtickLabel',0:0.1:1);
-axis([0 length(bins) 0 max(c)+0.05]);
-hold on
-c=histc(flyTracks.pBias(flyTracks.numTurns>50),bins);
-c=c./(sum(c));
-plot(c,'b');
-set(gca,'Xtick',(1:2:21),'XtickLabel',0:0.1:1);
-axis([0 length(bins) 0 max(c)+0.05]);
-shg
-
-% Clean up the workspace
+%% Save data to struct
 save(strcat(handles.fpath,'\',t,'LEDymaze','.mat'),'flyTracks');
 
+%% Create histogram plots of turn bias and light choice probability
+inc=0.05;
+bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
 
+c=histc(flyTracks.rBias(flyTracks.numTurns>40),bins); % turn histogram
+mad(flyTracks.rBias(flyTracks.numTurns>40))           % MAD of right turn prob
+c=c./(sum(c));
+c(end)=[];
+plot(c,'Linewidth',2);
+
+hold on
+c=histc(flyTracks.pBias(flyTracks.numTurns>40),bins); % histogram
+mad(flyTracks.rBias(flyTracks.numTurns>40))           % MAD of right turn prob
+c=c./(sum(c));
+c(end)=[];
+plot(c,'Linewidth',2);
+set(gca,'Xtick',(1:length(c)),'XtickLabel',0:inc:1);
+axis([0 length(bins) 0 max(c)+0.05]);
+
+% Generate legend labels
+strain='';
+treatment='';
+if iscellstr(flyTracks.labels{1,1})
+    strain=flyTracks.labels{1,1}{:};
+end
+if iscellstr(flyTracks.labels{1,3})
+    treatment=flyTracks.labels{1,3}{:};
+end
+
+legendLabel(1)={['Turn Choice Probability: ' strain ' ' treatment ' (u=' num2str(mean(flyTracks.rBias(flyTracks.numTurns>40)))...
+    ', n=' num2str(sum(flyTracks.numTurns>40)) ')']};
+legendLabel(2)={['Light Choice Probability: ' strain ' ' treatment ' (u=' num2str(mean(flyTracks.pBias(flyTracks.numTurns>40)))...
+    ', n=' num2str(sum(flyTracks.numTurns>40)) ')']};
+legend(legendLabel);
+shg
+
+%% Display command to load data struct into workspace
+
+disp('Execute the following command to load your data into the workspace:')
+disp(['load(',char(39),strcat(handles.fpath,'\',t,'flyTracks','.mat'),char(39),');'])

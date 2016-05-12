@@ -261,11 +261,13 @@ elseif handles.experiment == 1
 else
     switch handles.experiment
     	case 2
-            autoTrackerV2_ymaze;
+            autoTrackerV2_ymaze120;
         case 3
-            autoTrackerV2_arena;
+            autoTrackerV2_ymaze96;
         case 4
-            autoTrackerV2_led;
+            autoTrackerV2_arena;
+        case 5
+            autoTrackerV2_led;            
     end
 end
 
@@ -628,6 +630,26 @@ function popupmenu3_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 get(handles.popupmenu3,'Value')
 handles.experiment=get(handles.popupmenu3,'Value');
+
+switch handles.experiment
+    case 2
+        data = get(handles.uitable2, 'Data');
+        data(1,4:5) = [{1 120}];
+        set(handles.uitable2, 'Data', data);
+    case 3
+        data = get(handles.uitable2, 'Data');
+        data(1,4:5) = [{1 96}];
+        set(handles.uitable2, 'Data', data);
+    case 4
+        data = get(handles.uitable2, 'Data');
+        data(1,4:5) = [{1 48}];
+        set(handles.uitable2, 'Data', data);
+    case 5
+        data = get(handles.uitable2, 'Data');
+        data(1,4:5) = [{1 72}];
+        set(handles.uitable2, 'Data', data);
+end
+        
 guidata(hObject, handles);
 
 

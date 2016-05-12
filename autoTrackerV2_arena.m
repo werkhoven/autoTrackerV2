@@ -511,4 +511,7 @@ decPlotArenaTracesv2(flyCircles,tmpCen,flyTracks.ROI_coords)
 % Clean up the workspace
 save(strcat(handles.fpath,'\',t,'Circling','.mat'),'flyTracks');
 
+%% Display command to load data struct into workspace
 
+disp('Execute the following command to load your data into the workspace:')
+disp(['load(',char(39),strcat(handles.fpath,'\',t,'flyTracks','.mat'),char(39),');'])

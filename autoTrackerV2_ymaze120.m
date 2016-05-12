@@ -5,8 +5,8 @@
 exp_duration=handles.expDuration*60;           % Duration of the experiment in minutes
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
 referenceFreq=handles.refTime;              % Seconds between reference images
-armThresh=7;                                % Minimum pixel distance to end of maze arm for turn scoring
 referenceTime = 600;                        % Seconds over which intial reference images are taken
+
 % Tracking parameters
 imageThresh=get(handles.slider2,'value');    % Difference image threshold for detecting centroids
 speedThresh=35;                              % Maximum allow pixel speed (px/s);
@@ -23,7 +23,7 @@ labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' '
 strain=labels{1,1}{:};
 treatment=labels{1,3}{:};
 labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
-writetable(labels, labelID);
+writetable(labels, labelID);                       % Save label table
 
 % Create placeholder files
 cenID = [handles.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
@@ -35,17 +35,21 @@ dlmwrite(oriID, []);                          % create placeholder ASCII file
 dlmwrite(turnID, []);                         % create placeholder ASCII file
 
 %% Setup the camera and video object
-imaqreset
-pause(0.5);
+
+% Reset any open camera objects
+imaqreset             
+pause(0.5); 
 % Camera mode set to 8-bit with 664x524 resolution
 vid = initializeCamera('pointgrey',1,'F7_BayerRG8_664x524_Mode1');
 pause(0.5);
-
+        
 %% Grab image for ROI detection and segment out ROIs
 stop=get(handles.togglebutton10,'value');
 
 while stop~=1;
 tic
+
+% Check to see if accept reference has been pushed GUI
 stop=get(handles.togglebutton10,'value');
 
 % Take single frame
@@ -56,7 +60,8 @@ ROI_image=imagedata(:,:,1);
 % Update threshold value
 ROI_thresh=get(handles.slider1,'value');
 
-% Build a kernel to smooth vignetting
+% Build a subtraction matrix to smooth vignetting prior to ROI extraction
+% Will be replaced by decFilterVignetting once ROIs are detected
 gaussianKernel=buildGaussianKernel(size(ROI_image,2),size(ROI_image,1),sigma,kernelWeight);
 ROI_image=(uint8(double(ROI_image).*gaussianKernel));
 
@@ -74,8 +79,10 @@ centers=[xCenters,yCenters];
 % Define a permutation vector to sort ROIs from top-right to bottom left
 [ROI_coords,mazeOri,ROI_bounds,centers]=optoSortROIs(ROI_coords,mazeOri,centers,ROI_bounds);
 
+% Display number of ROIs detected
 set(handles.edit7,'String',num2str(size(ROI_bounds,1)));
 
+% Update display with ROI bounding boxes and sorted numbers
 if get(handles.togglebutton7,'value')==1
     imshow(binaryimage);
     hold on
@@ -91,9 +98,10 @@ if get(handles.togglebutton7,'value')==1
     drawnow
 end
 
-    
+% Update frame rate display    
 set(handles.edit8,'String',num2str(round(1/toc)));
 end
+
 % Reset the accept threshold button
 set(handles.togglebutton10,'value',0);
 
@@ -105,7 +113,12 @@ referenceCentroids=zeros(size(ROI_coords,1),2,10);      % Create placeholder for
 propFields={'Centroid';'Orientation';'Area'};           % Define fields for regionprops
 nRefs=zeros(size(ROI_coords,1),1);                      % Reference number placeholder
 numbers=1:size(ROI_coords,1);                           % Numbers to display while tracking
-centStamp=zeros(size(ROI_coords,1),1);
+
+% Create placeholder for time stamps of each flies last centroid update
+% Used to calculate speed of each fly
+centStamp=zeros(size(ROI_coords,1),1);                  
+
+% Define a subtraction matrix to correct for vignetting
 vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
 
 % Set maximum allowable distance to center of ROI as the long axis of the
@@ -114,7 +127,8 @@ widths=(ROI_bounds(:,3));
 heights=(ROI_bounds(:,4));
 w=median(widths);
 h=median(heights);
-distanceThresh=sqrt(w^2+h^2)/2*0.95;
+% Set max distance as the long axis of each ROI bounding box divided by 2
+distanceThresh=sqrt(w^2+h^2)/2*0.95;    
 
 % Calculate threshold for distance to end of maze arms for turn scoring
 mazeLengths=mean([widths heights],2);
@@ -161,9 +175,12 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
         imagedata=imagedata(:,:,1);
         subtractedData=(refImage-vignetteMat)-(imagedata-vignetteMat);
 
-        % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
+        % Extract regionprops and record centroid for blobs with (4 > area > 120) pixels
         props=regionprops((subtractedData>imageThresh),propFields);
         validCentroids=([props.Area]>4&[props.Area]<120);
+        
+        % Keep only centroids satisfying size constraints and reshape into
+        % ROInumber x 2 array
         cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
         oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
 
@@ -208,7 +225,8 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
        hold off
        drawnow
        end  
-       
+    
+    % Pause script on GUI pause button press 
     if get(handles.togglebutton9, 'Value') == 1;
         waitfor(handles.togglebutton9, 'Value', 0)
     end
@@ -221,15 +239,13 @@ vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
 % Reset accept reference button
 set(handles.togglebutton11,'value',0);
 
-%% Display tracking to screen for tracking errors
+%% Collect noise statistics and display sample tracking before initiating experiment
 
 
 ct=1;                               % Frame counter
 pixDistSize=100;                    % Num values to record in p
 pixelDist=NaN(pixDistSize,1);       % Distribution of total number of pixels above image threshold
 tElapsed=0;
-shg
-%title('Displaying Tracking for 120s - Please check tracking and ROIs')
 tic   
 
 while ct<pixDistSize;
@@ -251,26 +267,27 @@ while ct<pixDistSize;
                imagedata=peekdata(vid,1);
                imagedata=imagedata(:,:,1);
                imagedata=(refImage-vignetteMat)-(imagedata-vignetteMat);
-               props=regionprops((imagedata>imageThresh),propFields);
+               
 
-               % Match centroids to ROIs by finding nearest ROI center
+               % Extract regionprops and record centroid for blobs with (4 > area > 120) pixels
+               props=regionprops((imagedata>imageThresh),propFields);
                validCentroids=([props.Area]>4&[props.Area]<120);
+               
+               % Keep only centroids satisfying size constraints and reshape into
+               % ROInumber x 2 array
                cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
                oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
+               
+               % Sort centroids to their respective ROIs
                [lastCentroid,centStamp,tOriDat]=...
                     optoMatchCentroids2ROIs(cenDat,oriDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
+                
                %Update display if display tracking is ON
                if get(handles.togglebutton7,'Value') == 1;
                    imshow(imagedata>imageThresh);
                    hold on
                    % Mark centroids
                    plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r');
-                   % Draw rectangles to indicate ROI bounds
-                   %{
-                   for i = 1:size(ROI_coords,1)
-                    rectangle('Position',ROI_bounds(i,:),'EdgeColor','r')
-                   end
-                   %}
                hold off
                drawnow
                end
@@ -293,18 +310,19 @@ pixMean=nanmean(pixelDist);
 
 %% Calculate coordinates of end of each maze arm
 
-arm_coords=zeros(size(ROI_coords,1),2,6);
-w=ROI_bounds(:,3);
-h=ROI_bounds(:,4);
-xShift=w.*0.15;
+arm_coords=zeros(size(ROI_coords,1),2,6);   % Placeholder
+w=ROI_bounds(:,3);                          % width of each ROI
+h=ROI_bounds(:,4);                          % height of each ROI
+% Offsets to shift arm coords from edge of ROI bounding box
+xShift=w.*0.15;                             
 yShift=h.*0.15;
 
-% Coords 1-3 are for right-side down mazes
+% Coords 1-3 are for upside-down Ys
 arm_coords(:,:,1)=[ROI_coords(:,1)+xShift ROI_coords(:,4)-yShift];
 arm_coords(:,:,2)=[centers(:,1) ROI_coords(:,2)+yShift];
 arm_coords(:,:,3)=[ROI_coords(:,3)-xShift ROI_coords(:,4)-yShift];
 
-% Coords 4-6 are for right-side up mazes
+% Coords 4-6 are for right-side up Ys
 arm_coords(:,:,4)=[ROI_coords(:,1)+xShift ROI_coords(:,2)+yShift];
 arm_coords(:,:,5)=[centers(:,1) ROI_coords(:,4)-yShift];
 arm_coords(:,:,6)=[ROI_coords(:,3)-xShift ROI_coords(:,2)+yShift];
@@ -317,10 +335,12 @@ refStack=repmat(refImage,1,1,referenceStackSize);   % Create placeholder for 5-i
 refCount=0;
 aboveThresh=ones(10,1)*pixMean;                      % Num pixels above threshold last 5 frames
 pixDev=ones(10,1);                                   % Num Std. of aboveThresh from mean
-noiseCt=1;
-ct=1;                                               % Frame counter
+noiseCt=1;                                           % Frame counter for noise sampling
+ct=1;                                                % Frame counter
+
+% Time stamp variables
 tempCount=1;
-previous_tStamp=0;
+previous_tStamp=0;                  
 tElapsed=0;
 centStamp=zeros(size(ROI_coords,1),1);
 turntStamp=zeros(size(ROI_coords,1),1);
@@ -329,7 +349,6 @@ previous_refUpdater=0;                          % Compared to current_refUpdater
 write=boolean(0);                               % Data written to hard drive when true
 
 display=boolean(1);                             % Updates display every 2s when true
-mazes=1:size(ROI_coords,1);
 previous_arm=zeros(size(ROI_coords,1),1);
 
 
@@ -372,8 +391,8 @@ while toc < exp_duration
         % Capture frame and extract centroid
         imagedata=peekdata(vid,1);
         imagedata=imagedata(:,:,1);
-        diffImage=(refImage-vignetteMat)-(imagedata-vignetteMat);
-        props=regionprops((diffImage>imageThresh),propFields);
+        % Correct image for vignetting
+        diffImage=(refImage-vignetteMat)-(imagedata-vignetteMat);           
         
         % update reference image and ROI_positions at the reference frequency and print time remaining 
         current_refUpdater=mod(toc,referenceFreq);
@@ -384,23 +403,20 @@ while toc < exp_duration
         % threshold
         if pixDev(mod(ct,10)+1)<8
 
-            % Match centroids to ROIs by finding nearest ROI center
+            % Extract image properties and exclude centroids not satisfying
+            % size criteria
+            props=regionprops((diffImage>imageThresh),propFields);
             validCentroids=([props.Area]>4&[props.Area]<120);
             cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
             oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
+            
+            % Match centroids to ROIs by finding nearest ROI center
             [lastCentroid,centStamp,tOriDat]=...
                 optoMatchCentroids2ROIs(cenDat,oriDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
 
             % Determine if fly has changed to a new arm
             [current_arm,previous_arm,changedArm,rightTurns,turntStamp]=...
                 detectArmChange(lastCentroid,arm_coords,previous_arm,mazeOri,armThresh,turntStamp,tElapsed);
-
-            %Displays the turn scores of maze 13 in real time as a sanity check
-            %{
-             if changedArm(86)
-                    disp(rightTurns(86))
-             end
-            %}
 
             turnArm=NaN(size(ROI_coords,1),1);
             turnArm(changedArm)=current_arm(changedArm);
@@ -460,8 +476,13 @@ end
 
 disp('Experiment Complete')
 disp('Importing Data - may take a few minutes...')
+
+% Initialize data struct
 flyTracks=[];
 flyTracks.nFlies = size(ROI_coords,1);
+
+% Import time stamp, orientation, turn, and centroid data and store in
+% struct
 tmpOri = dlmread(oriID);
 flyTracks.tStamps=tmpOri(:,1);
 flyTracks.orientation=tmpOri(:,2:end);
@@ -482,23 +503,35 @@ end
 
 flyTracks.centroid=centroid;
 
-%% Discard the first turn in every maze
+%% Find index of first turn for each fly and discard to eliminate tracking artifacts
+
 turns=flyTracks.rightTurns;
 [r,c]=find(~isnan(turns));
 c=[0;c];
 t1rows=r(find(diff(c)));
 c(1)=[];
 t1cols=unique(c);
+
 for i=1:length(t1cols)
     turns(t1rows(i),t1cols(i))=NaN;
 end
+
+% Update turn data with false turns discarded
 flyTracks.rightTurns=turns;
 
-% Calculate turn probability
+%% Calculate turn probability
 numTurns=sum(~isnan(turns));
 flyTracks.numTurns=numTurns;
 flyTracks.tSeq=NaN(max(flyTracks.numTurns),flyTracks.nFlies);
 
+%{
+Start by converting arm number turn sequence into compressed right turn
+sequence by taking difference between subsequent maze arms. For either orientation 
+of a maze, arms are 1 to 3 left to right. For example, for a rightside-up Y, 
+right turns would be 1-3=-2, 3-2=1, and 2-1=1. The opposite is true for the
+opposite orientation of a maze. In the output, tSeq, Right turns = 1, Left
+turns = 0.
+%}
 for i=1:flyTracks.nFlies
     tSeq=flyTracks.rightTurns(~isnan(flyTracks.rightTurns(:,i)),i);
     tSeq=diff(tSeq);
@@ -508,19 +541,41 @@ for i=1:flyTracks.nFlies
         flyTracks.tSeq(1:length(tSeq),i)=tSeq==-1|tSeq==2;
     end
 end
-flyTracks.rBias=nansum(flyTracks.tSeq)./nansum(~isnan(flyTracks.tSeq));
-%[nansum(flyTracks.tSeq)' nansum(~isnan(flyTracks.tSeq))' ...
-%(nansum(flyTracks.tSeq)./nansum(~isnan(flyTracks.tSeq)))']
-bins=0:0.05:1;
-c=histc(flyTracks.rBias(~isnan(flyTracks.rBias)),bins);
-mad(flyTracks.rBias(~isnan(flyTracks.rBias)))
-c=c./(sum(c));
-plot(c);
-set(gca,'Xtick',(1:2:21),'XtickLabel',0:0.1:1);
-axis([0 length(bins) 0 max(c)+0.05]);
-shg
 
-% Clean up the workspace
+% Calculate right turn probability from tSeq
+flyTracks.rBias=nansum(flyTracks.tSeq)./nansum(~isnan(flyTracks.tSeq));
+
+%% Save data to struct
 save(strcat(handles.fpath,'\',t,'Ymaze','.mat'),'flyTracks');
 
 
+%% Plot histograms of the data
+
+inc=0.05;
+bins=-inc/2:inc:1+inc/2;   % Bins centered from 0 to 1 
+
+c=histc(flyTracks.rBias(flyTracks.numTurns>40),bins); % histogram
+mad(flyTracks.rBias(flyTracks.numTurns>40))           % MAD of right turn prob
+c=c./(sum(c));
+c(end)=[];
+plot(c,'Linewidth',2);
+set(gca,'Xtick',(1:length(c)),'XtickLabel',0:inc:1);
+axis([0 length(bins) 0 max(c)+0.05]);
+
+% Generate legend labels
+strain='';
+treatment='';
+if iscellstr(flyTracks.labels{1,1})
+    strain=flyTracks.labels{1,1}{:};
+end
+if iscellstr(flyTracks.labels{1,3})
+    treatment=flyTracks.labels{1,3}{:};
+end
+legend([strain ' ' treatment ' (u=' num2str(mean(flyTracks.rBias(flyTracks.numTurns>40)))...
+    ', n=' num2str(sum(flyTracks.numTurns>40)) ')']);
+shg
+
+%% Display command to load data struct into workspace
+
+disp('Execute the following command to load your data into the workspace:')
+disp(['load(',char(39),strcat(handles.fpath,'\',t,'flyTracks','.mat'),char(39),');'])
