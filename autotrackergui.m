@@ -52,7 +52,7 @@ function autotrackergui_OpeningFcn(hObject, ~, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to autotrackergui (see VARARGIN)
-handles.expDuration = 2;
+handles.expDuration = 120;
 handles.refStack = 5;
 handles.refTime = 22;
 
@@ -122,7 +122,6 @@ function uitable2_CellEditCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.labels{eventdata.Indices(1), eventdata.Indices(2)} = {''};
 handles.labels{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
-handles.labels
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
