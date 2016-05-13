@@ -508,8 +508,9 @@ clearvars -except tmpCen flyTracks t cenID flyCircles
 
 decPlotArenaTracesv2(flyCircles,tmpCen,flyTracks.ROI_coords)
 
-% Clean up the workspace
-save(strcat(handles.fpath,'\',t,'Circling','.mat'),'flyTracks');
+%% Clean up the workspace
+strain(ismember(strain,' ')) = [];
+save(strcat(handles.fpath,'\',t,'Circling','_',strain,'.mat'),'flyTracks');
 
 %% Display command to load data struct into workspace
 

@@ -596,7 +596,8 @@ flyTracks.rBias=nansum(flyTracks.tSeq)./nansum(~isnan(flyTracks.tSeq));
 flyTracks.pBias=nansum(flyTracks.lSeq)./nansum(~isnan(flyTracks.lSeq));
 
 %% Save data to struct
-save(strcat(handles.fpath,'\',t,'LEDymaze','.mat'),'flyTracks');
+strain(ismember(strain,' ')) = [];
+save(strcat(handles.fpath,'\',t,'LEDymaze','_',strain,'.mat'),'flyTracks');
 
 %% Create histogram plots of turn bias and light choice probability
 inc=0.05;

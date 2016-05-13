@@ -524,7 +524,8 @@ flyTracks.rBias=nansum(flyTracks.tSeq)./nansum(~isnan(flyTracks.tSeq));
 
 
 %% Save data to struct
-save(strcat(handles.fpath,'\',t,'Ymaze','.mat'),'flyTracks');
+strain(ismember(strain,' ')) = [];
+save(strcat(handles.fpath,'\',t,'Ymaze','_',strain,'.mat'),'flyTracks');
 
 %% Plot histograms of the data
 
