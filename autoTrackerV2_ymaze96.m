@@ -2,7 +2,6 @@
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 % Experimental parameters
-exp_duration=handles.expDuration*60;           % Duration of the experiment in minutes
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
 referenceFreq=handles.refTime;              % Seconds between reference images                           % Minimum pixel distance to end of maze arm for turn scoring
 referenceTime = 600;                        % Seconds over which intial reference images are taken
@@ -17,7 +16,7 @@ kernelWeight=0.34;                          % Scalar weighting of kernel when ap
 
 %% Save labels and create placeholder files for data
 
-t = datestr(clock,'mm-dd-yyyy_');
+t = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');
 labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment'});
 strain=labels{1,1}{:};
 treatment=labels{1,3}{:};
