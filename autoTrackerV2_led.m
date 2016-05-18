@@ -43,7 +43,7 @@ fclose(instrfindall);           % Make sure that the COM port is closed
 delete(instrfindall);           % Delete any serial objects in memory
 end
 
-s = serial(handles.port{1}); % Create Serial Object
+s = serial(handles.LED_ymaze_port{:}); % Create Serial Object
 set(s,'BaudRate',9600);         % Set baud rate
 fopen(s);                       % Open the port
 

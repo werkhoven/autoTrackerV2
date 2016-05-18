@@ -23,7 +23,7 @@ function varargout = autotrackergui(varargin)
 
 % Edit the above text to modify the response to help autotrackergui
 
-% Last Modified by GUIDE v2.5 08-May-2016 14:41:57
+% Last Modified by GUIDE v2.5 18-May-2016 17:55:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -60,7 +60,7 @@ axes(handles.axes2)
 set(handles.togglebutton9,'value',0);
 set(handles.slider2,'value',12);
 set(handles.slider1,'value',0.19);
-set(handles.togglebutton7,'value',1);
+set(handles.togglebutton7,'value',0);
 handles.experiment=1;
 
 % Close and delete any open serial objects
@@ -69,15 +69,32 @@ fclose(instrfindall);           % Make sure that the COM port is closed
 delete(instrfindall);           % Delete any serial objects in memory
 end
 
-serialInfo = instrhwinfo('serial');
-ports=serialInfo.AvailableSerialPorts;
+% Attempt handshake with light panel teensy
+[lightBoardPort,ports]=identifyMicrocontrollers;
+handles.lightBoardPort=lightBoardPort;
+
+% Assign unidentified ports to LED ymaze menu
 if ~isempty(ports)
-handles.port=ports(1);
+handles.LED_ymaze_port=ports(1);
 else
 ports='COM not detected';
 end
 
+% Update GUI menus with port names
 set(handles.popupmenu2,'string',ports);
+set(handles.popupmenu4,'string',lightBoardPort);
+
+% Initialize light panel at default values
+IR_intensity=str2num(get(handles.edit11,'string'));
+White_intensity=str2num(get(handles.edit12,'string'));
+
+% Convert intensity percentage to uint8 PWM value 0-255
+IR_intensity=uint8((IR_intensity/100)*255);
+White_intensity=uint8((White_intensity/100)*255);
+
+% Write values to microcontroller
+writeInfraredWhitePanel(handles.lightBoardPort,0,IR_intensity);
+writeInfraredWhitePanel(handles.lightBoardPort,1,White_intensity);
 
 % Choose default command line output for autotrackergui
 handles.output = hObject;
@@ -211,18 +228,30 @@ function togglebutton7_CreateFcn(~, ~, ~)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% --- Executes on button press in togglebutton7.
-function togglebutton7_Callback(hObject, ~, ~)
-% hObject    handle to togglebutton7 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% --- Executes on button press in Refresh COM.
+function togglebutton7_Callback(hObject, ~, handles)
+
+% Refresh items on the COM ports
 if get(hObject,'value')==1
-   set(hObject, 'BackgroundColor', [0.729 0.914 0.729]);
-   set(hObject, 'String','Display ON');
-elseif get(hObject,'value')==0
-    set(hObject, 'BackgroundColor', [1 0.42 0.42]);
-    set(hObject, 'String','Display OFF');
+   
+    % Attempt handshake with light panel teensy
+    [lightBoardPort,ports]=identifyMicrocontrollers;    
+    handles.lightBoardPort=lightBoardPort;
+
+    if ~isempty(ports)
+    handles.LED_ymaze_port=ports(1);
+    else
+    ports='COM not detected';
+    end
+
+    % Update GUI menus with port names
+    set(handles.popupmenu2,'string',ports);
+    set(handles.popupmenu4,'string',lightBoardPort);
+    
+    % reset the push button
+    set(hObject, 'value', 0);   
 end
+guidata(hObject,handles);
 
     
 
@@ -577,9 +606,8 @@ function popupmenu2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
 strCell=get(handles.popupmenu2,'string');
-handles.port=strCell(get(handles.popupmenu2,'Value'));
+handles.LED_ymaze_port=strCell(get(handles.popupmenu2,'Value'));
 guidata(hObject, handles);
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu2 contents as cell array
@@ -598,6 +626,7 @@ function popupmenu2_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+guidata(hObject, handles);
 
 
 
@@ -661,6 +690,97 @@ guidata(hObject, handles);
 % --- Executes during object creation, after setting all properties.
 function popupmenu3_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to popupmenu3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit11_Callback(hObject, eventdata, handles)
+% hObject    handle to edit11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+IR_intensity=str2num(get(handles.edit11,'string'));
+% Convert intensity percentage to uint8 PWM value 0-255
+if IR_intensity>100
+    IR_intensity=100;
+    set(handles.edit11,'string','100');
+end
+IR_intensity=uint8((IR_intensity/100)*255);
+writeInfraredWhitePanel(handles.lightBoardPort,0,IR_intensity);
+
+
+% Hints: get(hObject,'String') returns contents of edit11 as text
+%        str2double(get(hObject,'String')) returns contents of edit11 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit11_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit12_Callback(hObject, eventdata, handles)
+% hObject    handle to edit12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Convert intensity percentage to uint8 PWM value 0-255
+White_intensity=str2num(get(handles.edit12,'string'));
+if White_intensity>100
+    White_intensity=100;
+    set(handles.edit12,'string','100');
+end
+White_intensity=uint8((White_intensity/100)*255);
+writeInfraredWhitePanel(handles.lightBoardPort,1,White_intensity);
+
+% Hints: get(hObject,'String') returns contents of edit12 as text
+%        str2double(get(hObject,'String')) returns contents of edit12 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit12_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in popupmenu2.
+function popupmenu4_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+strCell=get(handles.popupmenu4,'string');
+handles.lightBoardPort=strCell(get(handles.popupmenu4,'Value'));
+guidata(hObject, handles);
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu2 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu2
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu4_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
