@@ -2,6 +2,7 @@
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 % Experimental parameters
+exp_duration=handles.expDuration;
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
 referenceFreq=handles.refTime;              % Seconds between reference images                           % Minimum pixel distance to end of maze arm for turn scoring
 referenceTime = 600;                        % Seconds over which intial reference images are taken
