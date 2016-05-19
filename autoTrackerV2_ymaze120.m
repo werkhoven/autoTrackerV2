@@ -427,7 +427,7 @@ while toc < exp_duration
         end
 
         % Update the display every 30 frames
-        if mod(ct,30)==0 && get(handles.togglebutton7,'value')==1
+        if mod(ct,30)==0
            %imagedata(:,:,1)=uint8((diffImage>imageThresh).*255);
            imshow((imagedata-vignetteMat))
            hold on
