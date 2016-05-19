@@ -7,7 +7,7 @@ function writeInfraredWhitePanel(COM_port,panel,level)
 
 no_COM={'COM not detected'};
 
-if any(COM_port{:}~=no_COM{:})
+if sum(COM_port{:})~=sum(no_COM{:})
 
 s = serial(COM_port{:});    % Create Serial Object
     set(s,'BaudRate',9600);         % Set baud rate
