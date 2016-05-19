@@ -294,7 +294,9 @@ else
     	case 2
             autoTrackerV2_ymaze120;
         case 3
+             disp('trying')
             autoTrackerV2_ymaze96;
+           
         case 4
             autoTrackerV2_arena;
         case 5
@@ -660,7 +662,7 @@ function popupmenu3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 get(handles.popupmenu3,'Value')
-handles.experiment=get(handles.popupmenu3,'Value')
+handles.experiment=get(handles.popupmenu3,'Value');
 
 switch handles.experiment
     case 2
@@ -683,8 +685,7 @@ switch handles.experiment
         data(1,4:5) = [{1 72}];
         handles.labels(1,4:5) = [{1 72}];
         set(handles.uitable2, 'Data', data);
-end
-handles.labels        
+end     
 guidata(hObject, handles);
 
 
