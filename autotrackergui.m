@@ -283,6 +283,8 @@ function pushbutton2_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles.experiment
+
 if isfield(handles, 'fpath') == 0 
     errordlg('Please specify Save Location')
 elseif handles.experiment == 1 
@@ -658,7 +660,7 @@ function popupmenu3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 get(handles.popupmenu3,'Value')
-handles.experiment=get(handles.popupmenu3,'Value');
+handles.experiment=get(handles.popupmenu3,'Value')
 
 switch handles.experiment
     case 2
@@ -670,12 +672,12 @@ switch handles.experiment
         data = get(handles.uitable2, 'Data');
         data(1,4:5) = [{1 96}];
         set(handles.uitable2, 'Data', data);
-        handles.labels{1,4:5} = [{1 96}];
+        handles.labels(1,4:5) = [{1 96}];
     case 4
         data = get(handles.uitable2, 'Data');
         data(1,4:5) = [{1 48}];
         set(handles.uitable2, 'Data', data);
-        handles.labels{1,4:5} = [{1 48}];
+        handles.labels(1,4:5) = [{1 48}];
     case 5
         data = get(handles.uitable2, 'Data');
         data(1,4:5) = [{1 72}];

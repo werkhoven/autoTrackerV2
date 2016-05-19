@@ -5,6 +5,10 @@ function writeInfraredWhitePanel(COM_port,panel,level)
 
 % PANEL=0=IR, PANEL=1=White
 
+no_COM={'COM not detected'};
+
+if any(COM_port{:}~=no_COM{:})
+
 s = serial(COM_port{:});    % Create Serial Object
     set(s,'BaudRate',9600);         % Set baud rate
     fopen(s);                       % Open the port
