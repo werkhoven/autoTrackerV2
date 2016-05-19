@@ -2,6 +2,7 @@
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 % Experimental parameters
+exp_duration=handles.expDuration;
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
 referenceFreq=handles.refTime;              % Seconds between reference images
 referenceTime = 600;                        % Seconds over which intial reference images are taken
@@ -73,7 +74,7 @@ centers=[xCenters,yCenters];
 
 set(handles.edit7,'String',num2str(size(ROI_bounds,1)));
 
-if get(handles.togglebutton7,'value')==1
+
     imshow(binaryimage);
     hold on
     for i = 1:size(ROI_coords,1)
@@ -86,7 +87,7 @@ if get(handles.togglebutton7,'value')==1
     end
     hold off
     drawnow
-end
+
 
     
 set(handles.edit8,'String',num2str(round(1/toc)));
@@ -186,7 +187,7 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
         end
         
        % Check "Display ON" toggle button from GUI 
-       if get(handles.togglebutton7,'value')==1
+
            % Update the plot with new reference
            imshow(subtractedData>imageThresh);
 
@@ -202,7 +203,7 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
            end
        hold off
        drawnow
-       end  
+
        
     if get(handles.togglebutton9, 'Value') == 1;
         waitfor(handles.togglebutton9, 'Value', 0)
@@ -255,7 +256,7 @@ while ct<pixDistSize;
                [lastCentroid,centStamp,tOriDat]=...
                     optoMatchCentroids2ROIs(cenDat,oriDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
                %Update display if display tracking is ON
-               if get(handles.togglebutton7,'Value') == 1;
+
                    imshow(imagedata>imageThresh);
                    hold on
                    % Mark centroids
@@ -268,7 +269,7 @@ while ct<pixDistSize;
                    %}
                hold off
                drawnow
-               end
+
                
            % Create distribution for num pixels above imageThresh
            % Image statistics used later during acquisition to detect noise
@@ -377,7 +378,7 @@ while toc < exp_duration
         end
 
         % Update the display every 30 frames
-        if mod(ct,30)==0 && get(handles.togglebutton7,'value')==1
+        if mod(ct,30)==0
            %imagedata(:,:,1)=uint8((diffImage>imageThresh).*255);
            imshow((imagedata-vignetteMat))
            hold on
