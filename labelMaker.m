@@ -4,9 +4,10 @@ function out = labelMaker(labels, varargin)
 %columns into 120x3 label cell array for Y-maze
 labels
 r = sum(~cellfun('isempty',labels(:,4)));
-newLabel = cell(120,3);
+newLabel = cell(120,5);
 mazeStarts=labels{:,4};
 mazeEnds=labels{:,5};
+
 
 for i = 1:r;
     d = mazeEnds(i) - mazeStarts(i);
@@ -16,6 +17,12 @@ for i = 1:r;
     end
     if isempty(labels(i,3)) == 0;
         newLabel(mazeStarts(i):mazeEnds(i),3) = repmat(labels(i,3), d+1, 1);
+    end
+    if ~isempty(labels(i,6)) && ~isempty(labels(i,7))
+    newLabel(mazeStarts(i):mazeEnds(i),4)=num2cell(str2double(labels{i,6}):str2double(labels{i,7}));
+    end
+    if size(labels,2)==8
+    newLabel(mazeStarts(i):mazeEnds(i),5)=repmat({str2double(labels{i,8})},d+1,1);
     end
 end
 out = newLabel;

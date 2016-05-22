@@ -78,6 +78,7 @@ if ~isempty(ports)
 handles.LED_ymaze_port=ports(1);
 else
 ports='COM not detected';
+handles.LED_ymaze_port={ports};
 end
 
 % Update GUI menus with port names
@@ -95,6 +96,9 @@ White_intensity=uint8((White_intensity/100)*255);
 % Write values to microcontroller
 writeInfraredWhitePanel(handles.lightBoardPort,0,IR_intensity);
 writeInfraredWhitePanel(handles.lightBoardPort,1,White_intensity);
+
+handles.LED_ymaze_port
+handles.lightBoardPort
 
 % Choose default command line output for autotrackergui
 handles.output = hObject;
@@ -123,8 +127,9 @@ function uitable2_CreateFcn(hObject, ~, ~)
 % hObject    handle to uitable2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-data=cell(5,5);
+data=cell(5,8);
 data(:)={''};
+handles.labels=data;
 set(hObject, 'Data', data);
 
 % --- Executes when entered data in editable cell(s) in uitable2.
@@ -242,6 +247,7 @@ if get(hObject,'value')==1
     handles.LED_ymaze_port=ports(1);
     else
     ports='COM not detected';
+    handles.LED_ymaze_port={ports};
     end
 
     % Update GUI menus with port names
@@ -251,6 +257,8 @@ if get(hObject,'value')==1
     % reset the push button
     set(hObject, 'value', 0);   
 end
+handles.LED_ymaze_port
+handles.lightBoardPort
 guidata(hObject,handles);
 
     

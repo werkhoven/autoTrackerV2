@@ -19,7 +19,7 @@ kernelWeight=0.34;                          % Scalar weighting of kernel when ap
 %% Save labels and create placeholder files for data
 
 t = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');
-labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment'});
+labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment' 'ID' 'Day'});
 strain=labels{1,1}{:};
 treatment=labels{1,3}{:};
 labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
@@ -43,6 +43,7 @@ fclose(instrfindall);           % Make sure that the COM port is closed
 delete(instrfindall);           % Delete any serial objects in memory
 end
 
+handles.LED_ymaze_port
 s = serial(handles.LED_ymaze_port{:}); % Create Serial Object
 set(s,'BaudRate',9600);         % Set baud rate
 fopen(s);                       % Open the port

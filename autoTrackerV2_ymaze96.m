@@ -18,7 +18,7 @@ kernelWeight=0.34;                          % Scalar weighting of kernel when ap
 %% Save labels and create placeholder files for data
 
 t = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');
-labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment'});
+labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment' 'ID' 'Day'});
 strain=labels{1,1}{:};
 treatment=labels{1,3}{:};
 labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
