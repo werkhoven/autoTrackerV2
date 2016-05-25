@@ -19,10 +19,10 @@ for i=1:size(ports,1)
 
     panel=2;
     level=2;
-    writeData=char([level panel]);
+    writeData=char([level panel 23 23]);
 
     fwrite(s,writeData,'uchar');
-    pause(0.1);
+    pause(0.25);
     
     if s.BytesAvailable>0
     handshake=fread(s,7);

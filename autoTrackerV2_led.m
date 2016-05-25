@@ -43,10 +43,11 @@ fclose(instrfindall);           % Make sure that the COM port is closed
 delete(instrfindall);           % Delete any serial objects in memory
 end
 
-handles.LED_ymaze_port
-s = serial(handles.LED_ymaze_port{:}); % Create Serial Object
-set(s,'BaudRate',9600);         % Set baud rate
-fopen(s);                       % Open the port
+
+s = serial(handles.LED_ymaze_port{:});  % Create Serial Object
+set(s,'BaudRate',9600);                 % Set baud rate
+fopen(s);                               % Open the port
+
 
 %% Set LED board permutation vector and initialize LEDs
 

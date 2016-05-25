@@ -243,9 +243,11 @@ if get(hObject,'value')==1
 
     if ~isempty(ports)
     handles.LED_ymaze_port=ports(1);
+    disp('reassigning PORT')
     else
     ports='COM not detected';
     handles.LED_ymaze_port={ports};
+    disp('NO PORT')
     end
 
     % Update GUI menus with port names
