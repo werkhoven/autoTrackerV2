@@ -1,7 +1,11 @@
+%% Set MATLAB to High Priority via Windows Command Line
+cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
+[~,~] = system(cmd_str);
 
 %% Define parameters - adjust parameters here to fix tracking and ROI segmentation errors
 
 % Experimental parameters
+exp_duration=handles.expDuration;
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
 referenceFreq=handles.refTime;              % Seconds between reference images
 referenceTime = 600;                        % Seconds over which intial reference images are taken
@@ -21,7 +25,7 @@ t = datestr(clock,'mm-dd-yyyy-HH-MM-SS_');
 labels = cell2table(labelMaker(handles.labels),'VariableNames',{'Strain' 'Sex' 'Treatment' 'ID' 'Day'});
 strain=labels{1,1}{:};
 treatment=labels{1,3}{:};
-labelID = [handles.fpath '\' t '_labels.dat'];     % File ID for label data
+labelID = [handles.fpath '\' t strain '_' treatment '_labels.dat'];     % File ID for label data
 writetable(labels, labelID);                       % Save label table
 
 % Create placeholder files
@@ -578,4 +582,8 @@ shg
 %% Display command to load data struct into workspace
 
 disp('Execute the following command to load your data into the workspace:')
-disp(['load(',char(39),strcat(handles.fpath,'\',t,'flyTracks','.mat'),char(39),');'])
+disp(['load(',char(39),strcat(handles.fpath,'\',t,'Ymaze','_',strain,'.mat'),char(39),');'])
+
+%% Set MATLAB priority to Above Normal via Windows Command Line
+cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
+[~,~] = system(cmd_str);

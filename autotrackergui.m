@@ -142,6 +142,7 @@ function uitable2_CellEditCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.labels{eventdata.Indices(1), eventdata.Indices(2)} = {''};
 handles.labels{eventdata.Indices(1), eventdata.Indices(2)} = eventdata.NewData;
+handles.labels
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -669,25 +670,26 @@ handles.experiment=get(handles.popupmenu3,'Value');
 switch handles.experiment
     case 2
         data = get(handles.uitable2, 'Data');
-        data(1,4:5) = [{1 120}];
+        data(1,4:5) = [{'1' '120'}];
         set(handles.uitable2, 'Data', data);
-        handles.labels(1,4:5) = {1 120};
+        handles.labels(1,4:5) = {'1' '120'};
     case 3
         data = get(handles.uitable2, 'Data');
-        data(1,4:5) = [{1 96}];
+        data(1,4:5) = [{'1' '96'}];
         set(handles.uitable2, 'Data', data);
-        handles.labels(1,4:5) = [{1 96}];
+        handles.labels(1,4:5) = [{'1' '96'}];
     case 4
         data = get(handles.uitable2, 'Data');
-        data(1,4:5) = [{1 48}];
+        data(1,4:5) = [{'1' '48'}];
         set(handles.uitable2, 'Data', data);
-        handles.labels(1,4:5) = [{1 48}];
+        handles.labels(1,4:5) = [{'1' '48'}];
     case 5
         data = get(handles.uitable2, 'Data');
-        data(1,4:5) = [{1 72}];
-        handles.labels(1,4:5) = [{1 72}];
+        data(1,4:5) = [{'1' '72'}];
+        handles.labels(1,4:5) = [{'1' '72'}];
         set(handles.uitable2, 'Data', data);
 end     
+handles.labels
 guidata(hObject, handles);
 
 
