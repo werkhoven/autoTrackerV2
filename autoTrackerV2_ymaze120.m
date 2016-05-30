@@ -358,10 +358,12 @@ previous_arm=zeros(size(ROI_coords,1),1);
 %% Run Experiment
 shg
 tic
+pt=0; % Initialize pause time
+
 while toc < exp_duration
     
         % Grab new time stamp
-        current_tStamp = toc;
+        current_tStamp = toc-pt;
         tElapsed=tElapsed+current_tStamp-previous_tStamp;
         set(handles.edit8,'String',num2str(round(1/(current_tStamp-previous_tStamp))));
         previous_tStamp=current_tStamp;
@@ -470,9 +472,12 @@ while toc < exp_duration
         end 
         previous_refUpdater=current_refUpdater;
    
-   if get(handles.togglebutton9, 'Value') == 1;
-      waitfor(handles.togglebutton9, 'Value', 0)   
-   end
+    if get(handles.togglebutton9, 'Value') == 1;
+        p1 = toc;
+        waitfor(handles.togglebutton9, 'Value', 0)
+        pt = toc-p1+pt;
+    end
+    
 end
 
 %% Pull in ASCII data, format into matrices
