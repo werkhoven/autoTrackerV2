@@ -1,3 +1,6 @@
+clearvars -except handles
+colormap('gray')
+
 %% Set MATLAB to High Priority via Windows Command Line
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
 [~,~] = system(cmd_str);
@@ -30,11 +33,9 @@ writetable(labels, labelID);                       % Save label table
 
 % Create placeholder files
 cenID = [handles.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
-oriID = [handles.fpath '\' t strain '_' treatment '_Orientation.dat'];         % File ID for orientation angle
 turnID = [handles.fpath '\' t strain '_' treatment '_RightTurns.dat'];         % File ID for turn data
  
 dlmwrite(cenID, []);                          % create placeholder ASCII file
-dlmwrite(oriID, []);                          % create placeholder ASCII file
 dlmwrite(turnID, []);                         % create placeholder ASCII file
 
 %% Setup the camera and video object
@@ -87,7 +88,8 @@ set(handles.edit7,'String',num2str(size(ROI_bounds,1)));
 
 % Update display with ROI bounding boxes and sorted numbers
 
-    imshow(binaryimage);
+    cla reset
+    imagesc(binaryimage);
     hold on
     for i = 1:size(ROI_bounds,1)
         rectangle('Position',ROI_bounds(i,:),'EdgeColor','r')
@@ -113,7 +115,7 @@ set(handles.togglebutton10,'value',0);
 refImage=imagedata(:,:,1);                              % Assign reference image
 lastCentroid=centers;                                   % Create placeholder for most recent non-NaN centroids
 referenceCentroids=zeros(size(ROI_coords,1),2,10);      % Create placeholder for cen. coords when references are taken
-propFields={'Centroid';'Orientation';'Area'};           % Define fields for regionprops
+propFields={'Centroid';'Area'};           % Define fields for regionprops
 nRefs=zeros(size(ROI_coords,1),1);                      % Reference number placeholder
 numbers=1:size(ROI_coords,1);                           % Numbers to display while tracking
 
@@ -185,11 +187,10 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
         % Keep only centroids satisfying size constraints and reshape into
         % ROInumber x 2 array
         cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
-        oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
 
         % Match centroids to ROIs by finding nearest ROI center
-        [lastCentroid,centStamp,tOriDat]=...
-            optoMatchCentroids2ROIs(cenDat,oriDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
+        [lastCentroid,centStamp]=...
+            optoMatchCentroids2ROIs(cenDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
         % Step through each ROI one-by-one
         for i=1:size(ROI_coords,1)
 
@@ -213,7 +214,8 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
        % Check "Display ON" toggle button from GUI 
        
            % Update the plot with new reference
-           imshow(subtractedData>imageThresh);
+            cla reset
+            imagesc(subtractedData>imageThresh);
 
            % Draw last known centroid for each ROI and update ref. number indicator
            hold on
@@ -279,15 +281,15 @@ while ct<pixDistSize;
                % Keep only centroids satisfying size constraints and reshape into
                % ROInumber x 2 array
                cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
-               oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
                
                % Sort centroids to their respective ROIs
-               [lastCentroid,centStamp,tOriDat]=...
-                    optoMatchCentroids2ROIs(cenDat,oriDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
+               [lastCentroid,centStamp]=...
+                    optoMatchCentroids2ROIs(cenDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
                 
                %Update display if display tracking is ON
                
-                   imshow(imagedata>imageThresh);
+               cla reset
+                imagesc(imagedata>imageThresh);
                    hold on
                    % Mark centroids
                    plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r');
@@ -413,11 +415,10 @@ while toc < exp_duration
             props=regionprops((diffImage>imageThresh),propFields);
             validCentroids=([props.Area]>4&[props.Area]<120);
             cenDat=reshape([props(validCentroids).Centroid],2,length([props(validCentroids).Centroid])/2)';
-            oriDat=reshape([props(validCentroids).Orientation],1,length([props(validCentroids).Orientation]))';
             
             % Match centroids to ROIs by finding nearest ROI center
-            [lastCentroid,centStamp,tOriDat]=...
-                optoMatchCentroids2ROIs(cenDat,oriDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
+            [lastCentroid,centStamp]=...
+                optoMatchCentroids2ROIs(cenDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed);
 
             % Determine if fly has changed to a new arm
             [current_arm,previous_arm,changedArm,rightTurns,turntStamp]=...
@@ -427,17 +428,16 @@ while toc < exp_duration
             turnArm(changedArm)=current_arm(changedArm);
             
             % Write data to the hard drive
-            dlmwrite(cenID, lastCentroid', '-append');
-            dlmwrite(oriID, [tElapsed oriDat'], '-append');
+            dlmwrite(cenID, [tElapsed lastCentroid'], '-append');
             dlmwrite(turnID, turnArm', '-append');
         end
 
         % Update the display every 30 frames
         if mod(ct,30)==0
-           %imagedata(:,:,1)=uint8((diffImage>imageThresh).*255);
-           imshow((imagedata-vignetteMat))
+           cla reset
+           imagesc((imagedata-vignetteMat));
            hold on
-           plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r')
+           plot(lastCentroid(:,1),lastCentroid(:,2),'o','Color','r');
            hold off
            drawnow
         end
@@ -491,14 +491,13 @@ flyTracks.nFlies = size(ROI_coords,1);
 
 % Import time stamp, orientation, turn, and centroid data and store in
 % struct
-tmpOri = dlmread(oriID);
-flyTracks.tStamps=tmpOri(:,1);
-flyTracks.orientation=tmpOri(:,2:end);
 flyTracks.rightTurns=dlmread(turnID);
 flyTracks.mazeOri=mazeOri;
 flyTracks.labels = readtable(labelID);
 
 tmp = dlmread(cenID);
+flyTracks.tStamps=tmp(:,1);
+tmp(:,1)=[];
 centroid=NaN(size(tmp,1)/2,2,flyTracks.nFlies);
 xCen=mod(1:size(tmp,1),2)==1;
 yCen=mod(1:size(tmp,1),2)==0;
@@ -592,3 +591,5 @@ disp(['load(',char(39),strcat(handles.fpath,'\',t,'Ymaze','_',strain,'.mat'),cha
 %% Set MATLAB priority to Above Normal via Windows Command Line
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
 [~,~] = system(cmd_str);
+
+clearvars -except handles

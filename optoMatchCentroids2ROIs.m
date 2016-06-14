@@ -1,12 +1,10 @@
-function [lastCentroid,centStamp,tOriDat]=optoMatchCentroids2ROIs(cenDat,oriDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed)
+function [lastCentroid,centStamp]=optoMatchCentroids2ROIs(cenDat,centers,speedThresh,distanceThresh,lastCentroid,centStamp,tElapsed)
 
 % Define placeholder data variables equal to number ROIs
 tempCenDat=NaN(size(centers,1),2);
-tempOriDat=NaN(size(centers,1),1);
 
 % Initialize temporary centroid and orientation variables
 tempCenDat(1:size(cenDat,1),:)=cenDat;
-tempOriDat(1:size(oriDat,1),:)=oriDat;
 
 
 % Find nearest Last Known Centroid for each current centroid
@@ -56,8 +54,6 @@ centStamp(~isnan(j))=tElapsed;
 
 % Update last known centroid and orientations
 lastCentroid(~isnan(j),:)=cenDat(j(~isnan(j)),:);
-tOriDat=NaN(size(centers,1),1);
-tOriDat(~isnan(j))=oriDat(j(~isnan(j)));
 
 end
 
