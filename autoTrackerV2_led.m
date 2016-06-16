@@ -11,7 +11,7 @@ cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 128';
 exp_duration=handles.expDuration;           % Duration of the experiment in minutes
 referenceStackSize=handles.refStack;        % Number of images to keep in rolling reference
 referenceFreq=handles.refTime;              % Seconds between reference images                           % Minimum pixel distance to end of maze arm for turn scoring
-referenceTime = 600;                        % Seconds over which intial reference images are taken
+referenceTime = 60;                        % Seconds over which intial reference images are taken
 % Tracking parameters
 imageThresh=get(handles.slider2,'value');                             % Difference image threshold for detecting centroids
 distanceThresh=20;                          % Maximum allowed pixel distance matching centroids to ROIs
@@ -117,7 +117,7 @@ stop=get(handles.togglebutton10,'value');
 % Take single frame
 imagedata=peekdata(vid,1);
 % Extract red channel
-ROI_image=imagedata(:,:,1);
+ROI_image=imagedata(:,:,2);
 
 % Update threshold value
 ROI_thresh=get(handles.slider1,'value');
@@ -172,7 +172,7 @@ set(handles.togglebutton10,'value',0);
 
 %% Automatically average out flies from reference image
 
-refImage=imagedata(:,:,1);                              % Assign reference image
+refImage=imagedata(:,:,2);                              % Assign reference image
 lastCentroid=centers;                                   % Create placeholder for most recent non-NaN centroids
 referenceCentroids=zeros(size(ROI_coords,1),2,10);      % Create placeholder for cen. coords when references are taken
 propFields={'Centroid';'Area'};           % Define fields for regionprops
@@ -231,7 +231,7 @@ while toc<referenceTime&&get(handles.togglebutton11,'value')~=1
         
         % Take difference image
         imagedata=peekdata(vid,1);
-        imagedata=imagedata(:,:,1);
+        imagedata=imagedata(:,:,2);
         subtractedData=(refImage-vignetteMat)-(imagedata-vignetteMat);
 
         % Extract regionprops and record centroid for blobs with (11 > area > 30) pixels
@@ -319,7 +319,7 @@ while ct<pixDistSize;
 
                % Get centroids and sort to ROIs
                imagedata=peekdata(vid,1);
-               imagedata=imagedata(:,:,1);
+               imagedata=imagedata(:,:,2);
                imagedata=(refImage-vignetteMat)-(imagedata-vignetteMat);
                props=regionprops((imagedata>imageThresh),propFields);
 
@@ -437,7 +437,7 @@ while toc < exp_duration
         
         % Capture frame and extract centroid
         imagedata=peekdata(vid,1);
-        imagedata=imagedata(:,:,1);
+        imagedata=imagedata(:,:,2);
         diffImage=(refImage-vignetteMat)-(imagedata-vignetteMat);
         props=regionprops((diffImage>imageThresh),propFields);
         
@@ -474,7 +474,7 @@ while toc < exp_duration
             numActive=decWriteLEDs(LEDs,targetPWM,s,permuteLEDs);
             
             % Write data to the hard drive
-            dlmwrite(cenID, [tElapsed lastCentroid'], '-append');
+            dlmwrite(cenID, [[ct;tElapsed] lastCentroid'], '-append');
             dlmwrite(turnID, turnArm', '-append');
             dlmwrite(liteID, lightChoice', '-append');
         end
@@ -503,7 +503,7 @@ while toc < exp_duration
             % aboveThresh, and pixDev
             % Otherwise, just update the stack with a new reference
             if mean(pixDev)>10
-               refStack=repmat(imagedata(:,:,1),1,1,size(refStack,3));
+               refStack=repmat(imagedata,1,1,referenceStackSize);
                refImage=uint8(mean(refStack,3));
                aboveThresh=ones(10,1)*pixMean;
                pixDev=ones(10,1);
@@ -511,9 +511,11 @@ while toc < exp_duration
             else
                % Update reference
                refCount=refCount+1;
-               refStack(:,:,mod(size(refStack,3),refCount)+1)=imagedata(:,:,1);
+               refStack(:,:,mod(refCount,referenceStackSize)+1)=imagedata;
                refImage=uint8(mean(refStack,3));
-            end
+               % Update vignette offset matrix with better reference
+               vignetteMat=decFilterVignetting(refImage,binaryimage,ROI_coords);
+            end       
         end 
         previous_refUpdater=current_refUpdater;
    
@@ -542,7 +544,7 @@ flyTracks.labels = readtable(labelID);
 flyTracks.lightChoices=dlmread(liteID);
 
 tmp = dlmread(cenID);
-flyTracks.tStamps=tmp(:,1);
+flyTracks.tStamps=tmp(mod(1:size(tmp,1),2)==0,1);
 tmp(:,1)=[];
 centroid=NaN(size(tmp,1)/2,2,flyTracks.nFlies);
 xCen=mod(1:size(tmp,1),2)==1;

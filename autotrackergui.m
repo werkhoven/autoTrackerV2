@@ -163,6 +163,7 @@ function edit1_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.expDuration = str2double(get(hObject,'String'));
+handles.expDuration
 guidata(hObject, handles)
 % Hints: get(hObject,'String') returns contents of edit1 as text
 %        str2double(get(hObject,'String')) returns contents of edit1 as a double
