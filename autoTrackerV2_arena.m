@@ -510,8 +510,6 @@ flyTracks.speed=speed;
 flyTracks.mu=mu;
 flyTracks.angHist=angHist;
 
-clearvars -except tmpCen flyTracks t cenID flyCircles strain
-
 decPlotArenaTracesv2(flyCircles,tmpCen,flyTracks.ROI_coords)
 
 %% Clean up the workspace
@@ -526,6 +524,8 @@ disp(['load(',char(39),strcat(handles.fpath,'\',t,'Circling','_',strain,'.mat'),
 %% Set MATLAB priority to Above Normal via Windows Command Line
 cmd_str = 'wmic process where name="MATLAB.exe" CALL setpriority 32768';
 [~,~] = system(cmd_str);
+
+clear
 
 
 clearvars -except handles
