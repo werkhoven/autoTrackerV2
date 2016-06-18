@@ -74,7 +74,7 @@ ROI_image=(uint8(double(ROI_image).*gaussianKernel));
 
 % Create orientation vector for mazes (upside down Y = 0, right-side up = 1)
 mazeOri=optoDetermineMazeOrientation(binaryimage,ROI_coords);
-mazeOri=boolean(mazeOri);
+mazeOri=logical(mazeOri);
 
 % Calculate coords of ROI centers
 [xCenters,yCenters]=optoROIcenters(binaryimage,ROI_coords);
@@ -351,9 +351,9 @@ centStamp=zeros(size(ROI_coords,1),1);
 turntStamp=zeros(size(ROI_coords,1),1);
 
 previous_refUpdater=0;                          % Compared to current_refUpdater to update the reference at correct freq.
-write=boolean(0);                               % Data written to hard drive when true
+write=logical(0);                               % Data written to hard drive when true
 
-display=boolean(1);                             % Updates display every 2s when true
+display=logical(1);                             % Updates display every 2s when true
 previous_arm=zeros(size(ROI_coords,1),1);
 
 

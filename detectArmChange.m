@@ -31,13 +31,13 @@ armDiff=previous_arm-current_arm;
 % in sequence
 dt=tElapsed-turntStamp;
 changedArm(dt<0.5)=0;
-changedArm=boolean(changedArm);
+changedArm=logical(changedArm);
 
 % Right turns recorded as transition (difference) from previous - current arm (1-3=-2; 3-2=1; 2-1=1)
-rightTurns(boolean(changedArm&~mazeOri))=...
-    (armDiff(boolean(changedArm&~mazeOri))==-2)+(armDiff(boolean(changedArm&~mazeOri))==1);
-rightTurns(boolean(changedArm&mazeOri))=...
-    (armDiff(boolean(changedArm&mazeOri))==2)+(armDiff(boolean(changedArm&mazeOri))==-1);
+rightTurns(logical(changedArm&~mazeOri))=...
+    (armDiff(logical(changedArm&~mazeOri))==-2)+(armDiff(logical(changedArm&~mazeOri))==1);
+rightTurns(logical(changedArm&mazeOri))=...
+    (armDiff(logical(changedArm&mazeOri))==2)+(armDiff(logical(changedArm&mazeOri))==-1);
 
 turntStamp(changedArm)=tElapsed;
 previous_arm(changedArm)=current_arm(changedArm);

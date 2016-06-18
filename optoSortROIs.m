@@ -97,7 +97,7 @@ centers=centers(permutation,:);
 % Sort mazeOri to match new ROI_coords permutation
 mazeOri(1:size(permutation_0,1))=0;
 mazeOri(size(permutation_0,1)+1:size(permutation,1))=1;
-mazeOri=boolean(mazeOri);
+mazeOri=logical(mazeOri);
 
 end
 

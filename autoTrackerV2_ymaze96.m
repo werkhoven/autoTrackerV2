@@ -71,14 +71,14 @@ ROI_image=(uint8(double(ROI_image).*gaussianKernel));
 centers=[xCenters,yCenters];
 
 % Create temp mazeOri vector
-mazeOri=boolean(zeros(size(ROI_coords,1),1));
+mazeOri=logical(zeros(size(ROI_coords,1),1));
 
 % Define a permutation vector to sort ROIs from top-right to bottom left
 [ROI_coords,mazeOri,ROI_bounds,centers]=optoSortROIs(ROI_coords,mazeOri,centers,ROI_bounds);
 
 % Create orientation vector for mazes (upside down Y = 0, right-side up = 1)
 mazeOri=optoDetermineMazeOrientation(binaryimage,ROI_coords);
-mazeOri=boolean(mazeOri);
+mazeOri=logical(mazeOri);
 
 set(handles.edit7,'String',num2str(size(ROI_bounds,1)));
 
@@ -326,9 +326,9 @@ centStamp=zeros(size(ROI_coords,1),1);
 turntStamp=zeros(size(ROI_coords,1),1);
 
 previous_refUpdater=0;                          % Compared to current_refUpdater to update the reference at correct freq.
-write=boolean(0);                               % Data written to hard drive when true
+write=logical(0);                               % Data written to hard drive when true
 
-display=boolean(1);                             % Updates display every 2s when true
+display=logical(1);                             % Updates display every 2s when true
 mazes=1:size(ROI_coords,1);
 previous_arm=zeros(size(ROI_coords,1),1);
 
