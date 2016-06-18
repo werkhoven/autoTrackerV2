@@ -510,7 +510,7 @@ flyTracks.speed=speed;
 flyTracks.mu=mu;
 flyTracks.angHist=angHist;
 
-clearvars -except tmpCen flyTracks t cenID flyCircles
+clearvars -except tmpCen flyTracks t cenID flyCircles strain
 
 decPlotArenaTracesv2(flyCircles,tmpCen,flyTracks.ROI_coords)
 
