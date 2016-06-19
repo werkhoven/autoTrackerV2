@@ -5,7 +5,7 @@ traces=NaN(floor(size(raw_data,1)/60),numFlies*2);
 traceMask=mod(1:floor(size(raw_data,1)/60)*60,60)==0;
 traces=raw_data(traceMask,:);
 traces(:,1)=[];
-traceMask=boolean([traceMask zeros(1,size(raw_data,1)-size(traceMask,2))]);
+traceMask=true([traceMask zeros(1,size(raw_data,1)-size(traceMask,2))]);
 
 colors = rand(1,3,numFlies);
 numFigures=ceil(numFlies/10);
