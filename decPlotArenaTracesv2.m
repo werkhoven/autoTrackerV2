@@ -1,11 +1,7 @@
 function out=decPlotArenaTracesv2(flyCircles,raw_data,ROI_coords)
 
 numFlies=length(flyCircles);
-traces=NaN(floor(size(raw_data,1)/60),numFlies*2);
-traceMask=mod(1:floor(size(raw_data,1)/60)*60,60)==0;
-traces=raw_data(traceMask,:);
-traces(:,1)=[];
-traceMask=true([traceMask zeros(1,size(raw_data,1)-size(traceMask,2))]);
+raw_data(:,1)=[];
 
 colors = rand(1,3,numFlies);
 numFigures=ceil(numFlies/10);
@@ -25,11 +21,11 @@ for i=1:numFlies
     hold on
     subplot(5,5,subP);
 
-            xTrace=traces(:,i*2-1)-ROI_coords(i,1);
-            yTrace=traces(:,i*2)-ROI_coords(i,2);
+            xTrace=raw_data(flyCircles(i).valid_trials,i*2-1)-ROI_coords(i,1);
+            yTrace=raw_data(flyCircles(i).valid_trials,i*2)-ROI_coords(i,2);
             tmpAngle=flyCircles(i).circum_vel;
-            tmpAngle=tmpAngle(traceMask);
-            z=zeros(size(xTrace));
+            tmpAngle=tmpAngle(flyCircles(i).valid_trials);
+            z=zeros(sum(flyCircles(i).valid_trials),1);
             mu=-sin(tmpAngle);
             surface([xTrace';xTrace'],[yTrace';yTrace'],[z';z'],[mu';mu'],...
                 'facecol','no','edgecol','interp','linew',0.5);
