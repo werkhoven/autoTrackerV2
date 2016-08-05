@@ -406,7 +406,7 @@ while toc < exp_duration
             % aboveThresh, and pixDev
             % Otherwise, just update the stack with a new reference
             if mean(pixDev)>10
-               refStack=repmat(imagedata(:,:,2),1,1,referenceStackSize);
+               refStack=repmat(imagedata,1,1,referenceStackSize);
                refImage=uint8(mean(refStack,3));
                aboveThresh=ones(10,1)*pixMean;
                pixDev=ones(10,1);
