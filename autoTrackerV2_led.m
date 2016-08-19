@@ -55,7 +55,7 @@ fopen(s);                               % Open the port
 
 %% Set LED board permutation vector and initialize LEDs
 
-targetPWM=100;      % Sets the max PWM for LEDs
+targetPWM=500;      % Sets the max PWM for LEDs
 
 % Set LED permutation vector that converts LED number by maze
 % into a unique address for each LED driver board on the teensy
@@ -616,7 +616,7 @@ plot(c,'Linewidth',2);
 
 hold on
 c=histc(flyTracks.pBias(flyTracks.numTurns>40),bins); % histogram
-mad(flyTracks.rBias(flyTracks.numTurns>40))           % MAD of right turn prob
+mad(flyTracks.pBias(flyTracks.numTurns>40))           % MAD of right turn prob
 c=c./(sum(c));
 c(end)=[];
 plot(c,'Linewidth',2);
