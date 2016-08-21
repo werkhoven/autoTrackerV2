@@ -55,7 +55,7 @@ fopen(s);                               % Open the port
 
 %% Set LED board permutation vector and initialize LEDs
 
-targetPWM=500;      % Sets the max PWM for LEDs
+targetPWM=0;      % Sets the max PWM for LEDs
 
 % Set LED permutation vector that converts LED number by maze
 % into a unique address for each LED driver board on the teensy
@@ -551,7 +551,6 @@ xCen=mod(1:size(tmp,1),2)==1;
 yCen=mod(1:size(tmp,1),2)==0;
 
 for k = 1:flyTracks.nFlies
-    k
     centroid(:, 1, k) = tmp(xCen, k)';
     centroid(:, 2, k) = tmp(yCen, k)';
 end
