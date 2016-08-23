@@ -35,10 +35,12 @@ writetable(labels, labelID);
 cenID = [handles.fpath '\' t strain '_' treatment '_Centroid.dat'];            % File ID for centroid data
 turnID = [handles.fpath '\' t strain '_' treatment '_RightTurns.dat'];         % File ID for turn data
 liteID = [handles.fpath '\' t strain '_' treatment '_lightSequence.dat'];      % File ID for light choice sequence data
+ledID = [handles.fpath '\' t strain '_' treatment '_ledArm.dat'];             % File ID for light choice sequence data
  
 dlmwrite(cenID, []);                          % create placeholder ASCII file
 dlmwrite(turnID, []);                         % create placeholder ASCII file
 dlmwrite(liteID, []);                         % create placeholder ASCII file
+dlmwrite(ledID, []);                          % create placeholder ASCII file
 
 %% Initialize Serial COM for teensy
 
@@ -462,14 +464,20 @@ while toc < exp_duration
 
             % Record new arm for flies that made a choice
             turnArm=NaN(size(ROI_coords,1),1);
-            turnArm(changedArm)=current_arm(changedArm);        
+            turnArm(changedArm)=current_arm(changedArm);
             
             % Detect choice with respect to the light
             lightChoice=decDetectLightChoice(changedArm,current_arm,LEDs);
             
             % Choose a new LED for flies that just made a turn
-            LEDs = decUpdateLEDs(changedArm,turnArm,LEDs);
-
+            LEDs = decUpdateLEDs(changedArm,turnArm,LEDs);  
+                        
+            % Record the arm of the LED and the arm that was turned to
+            [v,j]=max(LEDs');
+            ledArm=NaN(1,size(ROI_coords,1));
+            j=j-1;
+            ledArm(changedArm)=j(changedArm);
+            
             % Write new LED values to teensy
             numActive=decWriteLEDs(LEDs,targetPWM,s,permuteLEDs);
             
@@ -477,6 +485,7 @@ while toc < exp_duration
             dlmwrite(cenID, [[ct;tElapsed] lastCentroid'], '-append');
             dlmwrite(turnID, turnArm', '-append');
             dlmwrite(liteID, lightChoice', '-append');
+            dlmwrite(ledID, ledArm, '-append');
         end
 
         % Update the display every 30 frames
@@ -542,6 +551,7 @@ flyTracks.rightTurns=dlmread(turnID);
 flyTracks.mazeOri=mazeOri;
 flyTracks.labels = readtable(labelID);
 flyTracks.lightChoices=dlmread(liteID);
+flyTracks.ledArm=dlmread(ledID);
 
 tmp = dlmread(cenID);
 flyTracks.tStamps=tmp(mod(1:size(tmp,1),2)==0,1);
@@ -571,6 +581,24 @@ for i=1:length(t1cols)
 end
 flyTracks.rightTurns=turns;
 flyTracks.lightChoices=lseq;
+
+%% Calculate the fraction of trials that the ON Led appeared on the right side
+
+flyTracks.ledArm=dlmread(ledID);
+
+fractionLightRight=NaN(size(ROI_coords,1),1);
+
+for i=1:size(ROI_coords,1)
+    tmpLedArm=flyTracks.ledArm(~isnan(flyTracks.ledArm(:,i)),i);
+    tmpTurnArm=flyTracks.rightTurns(~isnan(flyTracks.rightTurns(:,i)),i);
+    tmpTurnArm(tmpTurnArm==-1)=2;
+    ledDirection=diff([tmpLedArm tmpTurnArm]');
+    lightRight=ledDirection==-2 | ledDirection==1;
+    fractionLightRight(i)=sum(lightRight)/length(lightRight);
+end
+
+fractionLightRight(mazeOri)=1-fractionLightRight(mazeOri);
+flyTracks.pLightRight=fractionLightRight;
 
 %% Calculate and record right turn and light choice probabilities for each fly
 
