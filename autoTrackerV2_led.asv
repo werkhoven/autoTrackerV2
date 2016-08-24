@@ -57,7 +57,7 @@ fopen(s);                               % Open the port
 
 %% Set LED board permutation vector and initialize LEDs
 
-targetPWM=4000;      % Sets the max PWM for LEDs
+targetPWM=0;      % Sets the max PWM for LEDs
 
 % Set LED permutation vector that converts LED number by maze
 % into a unique address for each LED driver board on the teensy
@@ -475,6 +475,7 @@ while toc < exp_duration
             % Record the arm of the LED and the arm that was turned to
             [v,j]=max(LEDs');
             ledArm=NaN(1,size(ROI_coords,1));
+            j=j-1;
             ledArm(changedArm)=j(changedArm);
             
             % Write new LED values to teensy
@@ -587,10 +588,11 @@ fractionLightRight=NaN(size(ROI_coords,1),1);
 
 for i=1:size(ROI_coords,1)
     tmpLedArm=flyTracks.ledArm(~isnan(flyTracks.ledArm(:,i)),i);
-    if ~isempty(tmpLedArm)
+    if ~isempty tmpLedArm
         tmpLedArm(1)=[];
     end
     tmpTurnArm=flyTracks.rightTurns(~isnan(flyTracks.rightTurns(:,i)),i);
+    tmpTurnArm=tmpTurnArm+1;
     ledDirection=diff([tmpLedArm tmpTurnArm]');
     lightRight=ledDirection==-2 | ledDirection==1;
     fractionLightRight(i)=sum(lightRight)/length(lightRight);
@@ -650,6 +652,8 @@ set(gca,'Xtick',(1:length(c)),'XtickLabel',0:inc:1);
 axis([0 length(bins) 0 max(c)+0.05]);
 
 % Generate legend labels
+strain='';
+treatment='';
 if iscellstr(flyTracks.labels{1,1})
     strain=flyTracks.labels{1,1}{:};
 end
