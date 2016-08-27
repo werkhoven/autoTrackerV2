@@ -434,6 +434,7 @@ end
 disp('Experiment Complete')
 disp('Importing Data - may take a few minutes...')
 flyTracks=[];
+flyTracks.exp='Arena Circling';
 flyTracks.ROI_coords=ROI_coords;
 flyTracks.ROIcenters=centers;
 flyTracks.nFlies = size(ROI_coords,1);

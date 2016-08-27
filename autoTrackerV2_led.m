@@ -545,12 +545,14 @@ delete(s);       % Delete Serial Object
 disp('Experiment Complete')
 disp('Importing Data - may take a few minutes...')
 flyTracks=[];
+flyTracks.exp='LED Y-maze';
 flyTracks.nFlies = size(ROI_coords,1);
 flyTracks.rightTurns=dlmread(turnID);
 flyTracks.mazeOri=mazeOri;
 flyTracks.labels = readtable(labelID);
 flyTracks.lightChoices=dlmread(liteID);
 flyTracks.ledArm=dlmread(ledID);
+
 
 tmp = dlmread(cenID);
 flyTracks.tStamps=tmp(mod(1:size(tmp,1),2)==0,1);

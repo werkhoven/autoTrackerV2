@@ -487,6 +487,7 @@ disp('Importing Data - may take a few minutes...')
 
 % Initialize data struct
 flyTracks=[];
+flyTracks.exp='Y-maze';
 flyTracks.nFlies = size(ROI_coords,1);
 
 % Import time stamp, orientation, turn, and centroid data and store in
